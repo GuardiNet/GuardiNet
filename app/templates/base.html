@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuardiNet - {% block title %}Tableau de bord{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Barre latérale -->
+        <aside class="sidebar">
+            
+            <div class="brand-logo" style="margin-top: 15px;">
+                <!-- Placeholder pour le vrai logo, on utilisera /static/img/logo.png plus tard -->
+                {% if logo_url %}
+                    <img src="{{ logo_url }}" alt="GuardiNet Logo">
+                {% else %}
+                    <h2 style="margin: 0; color: #1e3a8a;">GuardiNet</h2>
+                {% endif %}
+            </div>
+
+            <div class="profile-section">
+                <!-- Image avatar utilisateur -->
+                <img src="https://via.placeholder.com/40" alt="Avatar">
+                <span>Compte</span>
+            </div>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#" class="nav-item"><span class="icon">★</span> Emploi du temps</a></li>
+                    <li><a href="#" class="nav-item"><span class="icon">★</span> Devoirs</a></li>
+                    <li>
+                        <a href="#" class="nav-item">
+                            <span class="icon">★</span> Annonces
+                            <span class="badge">1</span>
+                        </a>
+                    </li>
+                    <li><a href="#" class="nav-item"><span class="icon">★</span> Notes</a></li>
+                    <li>
+                        <a href="#" class="nav-item" style="position: relative;">
+                            <span class="icon">★</span> Chat privé
+                            <!-- Le petit triangle blanc vu sur la maquette Canva -->
+                            <!-- <div class="active-tab-indicator"></div> -->
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="white-box-placeholder">
+                <!-- Zone liste contacts ou autre infos -->
+            </div>
+
+            <a href="#" class="logout-btn">Déconnexion</a>
+        </aside>
+
+        <!-- Contenu Principal -->
+        <main class="main-content">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+</body>
+</html>

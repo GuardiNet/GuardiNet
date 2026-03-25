@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuardiNet - L'Intranet de Guardia</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <!-- Si l'image n'est pas encore là, elle sera masquée grâce au onerror -->
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="GuardiNet Logo" onerror="this.style.display='none'">
+            <span>GuardiNet</span>
+        </div>
+        <nav>
+            <!-- Lien vers la future page de login -->
+            <a href="/login" class="btn-login-outline">Espace Membre</a>
+        </nav>
+    </header>
+
+    <main class="hero">
+        <div class="hero-content">
+            <h1>L'intranet de Guardia Cybersecurity School</h1>
+            <p>Bienvenue sur <strong>GuardiNet</strong>. Une plateforme centralisée pour les étudiants, les professeurs et l'administration. Accédez à vos emplois du temps, à vos cours et suivez votre scolarité dans un environnement sécurisé.</p>
+            <div class="action-buttons">
+                <a href="/login" class="btn-login">Connexion à l'intranet</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

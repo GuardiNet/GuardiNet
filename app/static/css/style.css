@@ -1,0 +1,153 @@
+:root {
+    --sidebar-bg: #c1d3c5; /* Vert sauge clair / grisâtre */
+    --main-bg: #e4e8ef;    /* Bleu/Gris très clair */
+    --text-color: #000000;
+    --active-item: #ffffff;
+    --notification-red: #ff7675;
+    --logout-bg: #8c8c8c;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--main-bg);
+}
+
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 250px;
+    background-color: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.profile-section {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.profile-section img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    background-color: white;
+    object-fit: cover;
+}
+
+.profile-section span {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.nav-item {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.icon {
+    color: white;
+    margin-right: 15px;
+    font-size: 1.2rem;
+}
+
+.badge {
+    background-color: var(--notification-red);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 50%;
+    position: absolute;
+    right: 20px;
+}
+
+/* White Box Placeholder */
+.white-box-placeholder {
+    background-color: white;
+    margin: 20px;
+    height: 250px;
+    border: 1px solid #aaa;
+}
+
+/* Logout Button */
+.logout-btn {
+    background-color: var(--logout-bg);
+    color: white;
+    text-align: center;
+    padding: 15px;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    margin-top: auto; /* Pushes it to the bottom */
+}
+
+.logout-btn:hover {
+    background-color: #7a7a7a;
+}
+
+/* Tab indicator triangle (like in Canva mockup) */
+.active-tab-indicator {
+    position: absolute;
+    right: -10px;
+    width: 0; 
+    height: 0; 
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    border-right: 20px solid white;
+}
+
+/* Main Content Styling */
+.main-content {
+    flex-grow: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+.main-content h1 {
+    margin-top: 0;
+    color: #333;
+}
+
+/* Logo in header */
+.brand-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 20px;
+}
+
+.brand-logo img {
+    width: 120px;
+    height: auto;
+}
