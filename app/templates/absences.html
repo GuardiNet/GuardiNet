@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Mes Absences{% endblock %}
+
+{% block content %}
+    <div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
+        <h2 class="edt-main-title" style="font-size: 4rem;">Mes Absences</h2>
+    </div>
+
+    <!-- Bannière récapitulative -->
+    <div style="background-color: #ebd1ea; border: 1px solid #ccc; padding: 20px; border-radius: 8px; text-align: center; font-size: 1.1rem; color: #333; margin-bottom: 40px; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);">
+        <strong>Total :</strong> 3 heures d'absence (dont 1 heure non justifiée)
+    </div>
+
+    <!-- Boucle Jinja prévue pour les absences -->
+    <!-- { % for absence in absences % } -->
+    
+    <div style="max-width: 1000px; margin: 0 auto; background-color: white; border: 2px solid #555; box-shadow: 4px 4px 0 #555;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background-color: #c1d3c5; border-bottom: 2px solid #555;">
+                    <th style="padding: 15px; border-right: 1px solid #555;">Date</th>
+                    <th style="padding: 15px; border-right: 1px solid #555;">Matière</th>
+                    <th style="padding: 15px; border-right: 1px solid #555;">Durée</th>
+                    <th style="padding: 15px;">Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 15px; border-right: 1px solid #eee; font-weight: bold;">Lundi 12 Février</td>
+                    <td style="padding: 15px; border-right: 1px solid #eee;">Algorithmique avancée</td>
+                    <td style="padding: 15px; border-right: 1px solid #eee;">2h</td>
+                    <td style="padding: 15px; color: #2e7d32; font-weight: bold;">Justifiée</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #ddd; background-color: #fafafa;">
+                    <td style="padding: 15px; border-right: 1px solid #eee; font-weight: bold;">Mardi 05 Mars</td>
+                    <td style="padding: 15px; border-right: 1px solid #eee;">Architecture Système</td>
+                    <td style="padding: 15px; border-right: 1px solid #eee;">1h</td>
+                    <td style="padding: 15px; color: #c62828; font-weight: bold;">Non justifiée</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuardiNet - Erreur 404</title>
+    <!-- On inclut le CSS mais sans la structure base.html -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- On cache le overflow pour eviter le scroll inutile sur les grands ecrans -->
+    <style>
+        body { 
+            background-color: var(--main-bg); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="error-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
+    
+    <h1 style="font-size: 8rem; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ff7675; text-shadow: 4px 4px 0 #000; letter-spacing: -2px;">404</h1>
+    
+    <h2 style="font-size: 2.5rem; margin-top: -10px; color: #333; font-weight: 300;">Oups ! Projet introuvable dans la matrice.</h2>
+    <p style="font-size: 1.2rem; color: #555; max-width: 600px; margin-bottom: 30px;">
+        On a retourné tout le serveur mais la page que vous cherchez n'existe pas ou a été effacée. En attendant que le sysadmin s'en rende compte :
+    </p>
+    
+    <div style="border: 4px solid #555; box-shadow: 8px 8px 0 #555; border-radius: 8px; overflow: hidden; margin-bottom: 40px; background-color: #fff; max-width: 500px; width: 100%;">
+        <img src="{{ meme_url }}" alt="Funny 404 Meme" style="width: 100%; height: auto; display: block; object-fit: cover; max-height: 400px;">
+        <div style="background-color: #555; color: white; padding: 10px; font-size: 0.9rem; font-weight: bold; text-transform: uppercase;">
+            Statut du Serveur : EN PANIQUE MENTALE
+        </div>
+    </div>
+
+    <!-- Le bouton nous renvoie correctement, mais cette page n'est plus enfermée dans base.html -->
+    <a href="{{ url_for('main.dashboard') }}" style="background-color: #a5bba9; color: black; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; text-decoration: none; border: 3px solid #555; box-shadow: 4px 4px 0 #555; border-radius: 6px; cursor: pointer; transition: all 0.1s ease;" 
+       onmousedown="this.style.boxShadow='0px 0px 0 #555'; this.style.transform='translate(4px, 4px)';" 
+       onmouseup="this.style.boxShadow='4px 4px 0 #555'; this.style.transform='translate(0px, 0px)';">
+        ⬅ RETOUR À LA SÉCURITÉ
+    </a>
+</div>
+
+</body>
+</html>

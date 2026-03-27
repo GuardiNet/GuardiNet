@@ -12,12 +12,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-inner">
                 <div class="brand-logo" style="margin-top: 15px;">
-                    <!-- Placeholder pour le vrai logo, on utilisera /static/img/logo.png plus tard -->
-                    {% if logo_url %}
-                        <img src="{{ logo_url }}" alt="GuardiNet Logo">
-                    {% else %}
-                        <h2 style="margin: 0; color: #1e3a8a;">GuardiNet</h2>
-                    {% endif %}
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="GuardiNet Logo" style="max-width: 80%; height: auto; display: block; margin: 0 auto;">
                 </div>
 
                 <div class="profile-section">
@@ -51,6 +46,12 @@
                             <a href="{{ url_for('main.notes') }}" class="nav-item">
                                 <span class="icon">★</span> Notes
                                 {% if active_page == 'notes' %}<div class="active-tab-indicator"></div>{% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('main.absences') }}" class="nav-item">
+                                <span class="icon">★</span> Absences
+                                {% if active_page == 'absences' %}<div class="active-tab-indicator"></div>{% endif %}
                             </a>
                         </li>
                         <li>

@@ -204,8 +204,10 @@ body, html {
 }
 
 .brand-logo img {
-    width: 120px;
+    width: 160px;
+    max-width: 100%;
     height: auto;
+    object-fit: contain;
 }
 
 /* ================================================== */
@@ -217,6 +219,7 @@ body, html {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
     padding: 20px 0;
+    align-items: start; /* Empêche les cartes de s'étirer verticalement quand une voisine s'agrandit */
 }
 
 .note-card {
@@ -555,6 +558,58 @@ body, html {
 }
 
 /* ================================================== */
+/* STYLES SPÉCIFIQUES POUR LA MESSAGERIE (CHAT)       */
+/* ================================================== */
+
+.chat-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    height: 600px;
+    background-color: white;
+    border: 2px solid #555;
+    box-shadow: 4px 4px 0 #555;
+    overflow: hidden;
+}
+
+.chat-sidebar {
+    width: 30%;
+    border-right: 2px solid #555;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-window {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-input-area {
+    padding: 15px;
+    border-top: 2px solid #555;
+    background-color: white;
+}
+
+.chat-send-btn {
+    padding: 10px 20px;
+    background-color: #8c8c8c;
+    color: white;
+    border: 1px solid #555;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.chat-send-btn:hover {
+    background-color: #777;
+}
+
+.send-icon {
+    display: none;
+}
+
+/* ================================================== */
 /* MEDIA QUERIES (RESPONSIVE)                         */
 /* ================================================== */
 
@@ -575,6 +630,43 @@ body, html {
     .sidebar {
         width: 85%;
         min-width: 85%;
+        max-width: 85%;
+        position: fixed;
+        left: -100%;
+    }
+
+    /* CHAT RESPONSIVE */
+    .chat-container {
+        flex-direction: column !important;
+        height: auto !important;
+        max-height: 80vh !important;
+    }
+
+    .chat-sidebar {
+        width: 100% !important;
+        height: 150px;
+        border-right: none !important;
+        border-bottom: 2px solid #555;
+    }
+
+    .chat-window {
+        width: 100% !important;
+        height: 60vh;
+    }
+
+    .chat-send-btn {
+        padding: 10px !important;
+        border-radius: 5px;
+    }
+
+    .send-text {
+        display: none !important;
+    }
+
+    .send-icon {
+        display: inline !important;
+    }
+}
         position: fixed;
         height: 100vh;
         z-index: 1000;

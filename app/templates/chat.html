@@ -3,16 +3,14 @@
 {% block title %}Chat privé{% endblock %}
 
 {% block content %}
-    <h1 style="color: #333; margin-top: -20px; font-weight: normal; font-size: 1.5rem;">Bonjour {{ user_name | default('Étudiant(e)') }}</h1>
-    
     <div style="text-align: center; margin-bottom: 20px;">
         <h2 class="edt-main-title" style="font-size: 4rem;">Messagerie</h2>
     </div>
 
-    <div style="max-width: 1000px; margin: 0 auto; display: flex; height: 600px; background-color: white; border: 2px solid #555; box-shadow: 4px 4px 0 #555;">
+    <div class="chat-container">
         
         <!-- Liste des contacts -->
-        <div style="width: 30%; border-right: 2px solid #555; display: flex; flex-direction: column;">
+        <div class="chat-sidebar">
             <div style="background-color: #c1d3c5; padding: 15px; border-bottom: 2px solid #555; font-weight: bold; text-align: center;">
                 Contacts
             </div>
@@ -36,7 +34,7 @@
         </div>
 
         <!-- Fenêtre de chat -->
-        <div style="width: 70%; display: flex; flex-direction: column;">
+        <div class="chat-window">
             <div style="background-color: #e4efe7; padding: 15px; border-bottom: 2px solid #555; font-weight: bold;">
                 <span id="current-chat-name">Discussion avec M. Einstein</span>
             </div>
@@ -58,10 +56,13 @@
             </div>
 
             <!-- Zone de saisie -->
-            <div style="padding: 15px; border-top: 2px solid #555; background-color: white;">
-                <form action="#" method="POST" style="display: flex; gap: 10px;">
+            <div class="chat-input-area">
+                <form action="#" method="POST" style="display: flex; gap: 10px; width: 100%;">
                     <input type="text" placeholder="Écrivez votre message..." style="flex-grow: 1; padding: 10px; border: 1px solid #555; font-family: inherit;">
-                    <button type="submit" style="padding: 10px 20px; background-color: #8c8c8c; color: white; border: 1px solid #555; font-weight: bold; cursor: pointer;">Envoyer</button>
+                    <button type="submit" class="chat-send-btn">
+                        <span class="send-text">Envoyer</span>
+                        <span class="send-icon">➤</span>
+                    </button>
                 </form>
             </div>
         </div>
