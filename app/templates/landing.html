@@ -14,19 +14,56 @@
             <span>GuardiNet</span>
         </div>
         <nav>
-            <!-- Lien vers la future page de login -->
-            <a href="/login" class="btn-login-outline">Espace Membre</a>
+            <a href="#features" class="btn-link">Le projet</a>
+            <a href="/login" class="btn-login-outline">Se connecter</a>
         </nav>
     </header>
 
-    <main class="hero">
-        <div class="hero-content">
-            <h1>L'intranet de Guardia Cybersecurity School</h1>
-            <p>Bienvenue sur <strong>GuardiNet</strong>. Une plateforme centralisée pour les étudiants, les professeurs et l'administration. Accédez à vos emplois du temps, à vos cours et suivez votre scolarité dans un environnement sécurisé.</p>
-            <div class="action-buttons">
-                <a href="/login" class="btn-login">Connexion à l'intranet</a>
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <div class="badge">Projet Étudiant DevSecOps</div>
+                <h1>Le portail des étudiants de<br><span class="highlight">Guardia Cybersecurity School</span></h1>
+                <p>Retrouvez vos cours, votre emploi du temps et vos messages directement sur GuardiNet. Une plateforme développée par des étudiants, pour mettre en pratique nos cours de cybersécurité.</p>
+                <div class="action-buttons">
+                    <a href="/login" class="btn-login">Accéder à l'intranet</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="features" id="features">
+            <h2 class="features-title">Fonctionnalités principales</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Sécurité intégrée</h3>
+                    <p>On a construit l'app en essayant de limiter au maximum les vulnérabilités classiques (gestion des droits, protections XSS/CSRF).</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📅</div>
+                    <h3>Scolarité centralisée</h3>
+                    <p>Un seul endroit pour voir son planning, suivre ses notes de l'année et vérifier les devoirs à rendre.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>Échanges facilités</h3>
+                    <p>Un chat intégré et un système d'annonces de l'administration pour rester au courant de ce qu'il se passe sur le campus.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="GuardiNet Logo" onerror="this.style.display='none'">
+                <span>GuardiNet</span>
+            </div>
+            <p>&copy; 2026 GuardiNet - Projet scolaire Guardia.</p>
+            <div class="footer-links">
+                <a href="https://github.com/GuardiNet/GuardiNet" target="_blank">Voir notre GitHub</a>
             </div>
         </div>
-    </main>
+    </footer>
 </body>
 </html>

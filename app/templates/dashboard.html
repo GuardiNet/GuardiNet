@@ -1,17 +1,103 @@
 {% extends "base.html" %}
 
-{% block title %}Accueil{% endblock %}
+{% block title %}Emploi du temps{% endblock %}
 
 {% block content %}
-    <h1>Bienvenue sur GuardiNet</h1>
-    <p>Ceci est votre tableau de bord central. Depuis cette page, vous pouvez accéder à votre emploi du temps, vos devoirs, les annonces importantes ou encore vérifier vos notes.</p>
+    <h1 style="color: #333; margin-top: -20px; font-weight: normal; font-size: 1.5rem;">Bonjour {{ user_name | default('Étudiant(e)') }}</h1>
     
-    <div style="margin-top: 30px; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 800px;">
-        <h2>Dernières informations</h2>
-        <ul style="line-height: 1.8; color: #555;">
-            <li><strong>Emploi du temps :</strong> Pas de changement pour la semaine prochaine.</li>
-            <li><strong>Devoirs :</strong> Devoir de cybersécurité à rendre pour vendredi.</li>
-            <li><strong>Annonces :</strong> L'exercice d'évacuation aura lieu jeudi matin.</li>
-        </ul>
+    <div style="text-align: center; margin-bottom: 40px;">
+        <h2 class="edt-main-title">Emploi du temps</h2>
+    </div>
+    
+    <div class="edt-container">
+        <!-- Navigation Panel on the left -->
+        <div class="edt-nav-panel">
+            <div class="edt-week-display">
+                <!-- Variable backend pour afficher la semaine en cours -->
+                Semaine du {{ current_week | default('12 au 18 Oct') }}
+            </div>
+
+            <div class="edt-arrows">
+                <!-- Boutons prévus pour requêter la semaine précédente/suivante (URL parameters ou AJAX) -->
+                <button class="edt-arrow-btn" onclick="javascript:alert('Charger semaine précédente')">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M15 18l-6-6 6-6v12z"/></svg>
+                </button>
+                <button class="edt-arrow-btn" onclick="javascript:alert('Charger semaine suivante')">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M9 18l6-6-6-6v12z"/></svg>
+                </button>
+            </div>
+            
+            <form action="" method="GET">
+                <select class="edt-dropdown" name="view" onchange="this.form.submit()">
+                    <option value="hebdo">Hebdomadaire</option>
+                    <option value="jour">Journalier</option>
+                    <option value="mois">Mensuel</option>
+                </select>
+            </form>
+        </div>
+
+        <!-- Timetable Grid -->
+        <div class="edt-table-wrapper">
+            <table class="edt-table">
+                <thead>
+                    <tr>
+                        <th class="col-day"></th>
+                        <th>8h</th><th>9h</th><th>10h</th><th>11h</th><th>12h</th>
+                        <th>13h</th><th>14h</th><th>15h</th><th>16h</th><th>17h</th>
+                        <th>18h</th><th>19h</th><th>20h</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {# 
+                       INTÉGRATION BACKEND : 
+                       Ici on bouclera sur les jours avec Jinja2 : { % for day in days % } 
+                       Puis à l'intérieur, { % for course in day.courses % } pour gérer les colspans
+                    #}
+                    
+                    <tr>
+                        <th class="row-day"><span>LUNDI</span></th>
+                        <!-- Exemple de durée (2.5h) = colspan="3" ici pour simuler -->
+                        <td colspan="3" class="edt-event event-purple">
+                            <span class="event-time">8h - 10h30</span><br>
+                            Cours de relativité <br>générale<br><br>
+                            M. Einstein
+                        </td>
+                        <!-- Exemple de durée (1h) = colspan="1" -->
+                        <td class="edt-event event-pink">
+                            <span class="event-time">11h - 12h</span><br>
+                            Edu. Sex.<br><br>
+                            M. Epstein
+                        </td>
+                        <!-- Le reste des cellules vides pour compléter les 13 créneaux -->
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+
+                    <tr>
+                        <th class="row-day"><span>MARDI</span></th>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <th class="row-day"><span>MERCREDI</span></th>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <th class="row-day"><span>JEUDI</span></th>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <th class="row-day"><span>VENDREDI</span></th>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <th class="row-day"><span>SAMEDI</span></th>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="fake-scrollbar">
+                <div class="fake-thumb"></div>
+            </div>
+        </div>
     </div>
 {% endblock %}

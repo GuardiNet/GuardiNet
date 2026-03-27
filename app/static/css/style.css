@@ -90,12 +90,27 @@ body, html {
     right: 20px;
 }
 
-/* White Box Placeholder */
-.white-box-placeholder {
+/* Announcement Box (Bottom Left) */
+.announcement-box {
     background-color: white;
     margin: 20px;
     height: 250px;
-    border: 1px solid #aaa;
+    border: 2px solid #555;
+    display: flex;
+    flex-direction: column;
+}
+
+.announcement-header {
+    background-color: #a5bba9;
+    text-align: center;
+    padding: 5px;
+    border-bottom: 2px solid #555;
+    font-size: 0.9rem;
+    color: #000;
+}
+
+.announcement-content {
+    flex-grow: 1;
 }
 
 /* Logout Button */
@@ -150,4 +165,189 @@ body, html {
 .brand-logo img {
     width: 120px;
     height: auto;
+}
+
+/* ================================================== */
+/* STYLES SPÉCIFIQUES POUR L'EMPLOI DU TEMPS (EDT)    */
+/* ================================================== */
+
+.edt-main-title {
+    font-size: 5rem;
+    font-weight: 300;
+    font-family: Arial, Helvetica, sans-serif;
+    color: black;
+    text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.4);
+    letter-spacing: 2px;
+    margin: 0;
+    display: inline-block;
+}
+
+.edt-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    width: 100%;
+    max-width: 1500px; /* Agrandi */
+}
+
+/* Panneau de navigation (Flèches + Liste déroulante) */
+.edt-nav-panel {
+    background-color: #a5bba9;
+    padding: 15px;
+    border: 2px solid #555;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 180px; /* Légèrement élargi */
+    box-shadow: inset 0px 0px 5px rgba(0,0,0,0.1);
+}
+
+.edt-week-display {
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #000;
+    margin-top: -5px;
+    background: rgba(255,255,255,0.4);
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.edt-arrows {
+    display: flex;
+    justify-content: space-between;
+}
+
+.edt-arrow-btn {
+    background-color: #8c8c8c;
+    border: 1px solid #555;
+    color: white;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edt-arrow-btn:hover {
+    background-color: #7a7a7a;
+}
+
+.edt-arrow-btn:active {
+    transform: scale(0.9);
+}
+
+.edt-dropdown {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #555;
+    font-family: inherit;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* Table Emploi du Temps */
+.edt-table-wrapper {
+    flex-grow: 1;
+    position: relative;
+    background-color: white;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.05); /* Ombre légère pour donner du volume */
+}
+
+.edt-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid #555;
+    table-layout: fixed; /* Colonnes de taille égale */
+}
+
+.edt-table th, 
+.edt-table td {
+    border: 1px solid #555;
+    padding: 0;
+    text-align: center;
+}
+
+.edt-table thead th {
+    background-color: #c1d3c5;
+    font-weight: bold;
+    font-size: 1.2rem; /* Plus grand */
+    padding: 8px 0;
+    height: 40px;
+}
+
+.edt-table tbody td {
+    height: 100px; /* Plus grand (avant 80px) */
+    vertical-align: top;
+    position: relative;
+}
+
+/* Colonne et Lignes jours (Lundi, Mardi...) */
+.col-day {
+    width: 50px; /* Plus large */
+    background-color: #c1d3c5;
+}
+
+.row-day {
+    background-color: #e4efe7;
+    width: 50px;
+    vertical-align: middle;
+    padding: 10px 0;
+}
+
+.row-day span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    display: inline-block;
+    letter-spacing: 4px;
+    font-size: 1rem; /* Plus grand */
+    font-weight: bold;
+}
+
+/* Evènements dans l'EDT */
+.edt-event {
+    padding: 5px !important;
+    text-align: left !important;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    overflow: hidden;
+}
+
+.event-time {
+    font-weight: bold;
+    font-size: 0.8rem;
+    display: block;
+    text-align: center;
+    margin-bottom: 3px;
+}
+
+/* Couleurs des cours */
+.event-purple {
+    background-color: #d6d6f5; /* Violet clair Einstein */
+}
+
+.event-pink {
+    background-color: #f5c6cb; /* Rose Epstein */
+}
+
+/* Fausse Scrollbar à droite pour coller au design Canva */
+.fake-scrollbar {
+    position: absolute;
+    right: -15px;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    background-color: #cfd8dc;
+    border: 1px solid #555;
+    border-left: none;
+}
+
+.fake-thumb {
+    width: 100%;
+    height: 30%;
+    background-color: #8c8c8c;
+    border-radius: 5px;
+    margin-top: 40px;
 }
