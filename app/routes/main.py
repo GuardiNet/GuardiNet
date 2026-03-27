@@ -9,8 +9,28 @@ def index():
 
 @main_bp.route('/dashboard')
 def dashboard():
-    # Le tableau de bord interne (l'intranet)
-    return render_template('dashboard.html', logo_url='/static/img/logo.png')
+    # Le tableau de bord interne (l'intranet) - Emploi du temps
+    return render_template('dashboard.html', active_page='dashboard')
+
+@main_bp.route('/devoirs')
+def devoirs():
+    # Page des devoirs
+    return render_template('devoirs.html', active_page='devoirs')
+
+@main_bp.route('/annonces')
+def annonces():
+    # Page des annonces
+    return render_template('annonces.html', active_page='annonces', nb_annonces=1)
+
+@main_bp.route('/notes')
+def notes():
+    # Page des notes
+    return render_template('notes.html', active_page='notes')
+
+@main_bp.route('/chat')
+def chat():
+    # Page du chat privé
+    return render_template('chat.html', active_page='chat')
 
 @main_bp.route('/login')
 def login():

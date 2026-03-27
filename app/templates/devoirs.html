@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Devoirs{% endblock %}
+
+{% block content %}
+    <h1 style="color: #333; margin-top: -20px; font-weight: normal; font-size: 1.5rem;">Bonjour {{ user_name | default('Étudiant(e)') }}</h1>
+    
+    <div style="text-align: center; margin-bottom: 40px;">
+        <h2 class="edt-main-title" style="font-size: 4rem;">Mes Devoirs</h2>
+    </div>
+
+    <!-- Boucle Jinja prévue pour les devoirs du backend -->
+    <!-- { % for devoir in devoirs % } -->
+    
+    <div style="max-width: 1000px; margin: 0 auto; background-color: white; border: 2px solid #555; box-shadow: 4px 4px 0 #555;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background-color: #c1d3c5; border-bottom: 2px solid #555;">
+                    <th style="padding: 15px; border-right: 1px solid #555;">Matière</th>
+                    <th style="padding: 15px; border-right: 1px solid #555;">Sujet</th>
+                    <th style="padding: 15px; border-right: 1px solid #555;">Pour le</th>
+                    <th style="padding: 15px;">Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Remplacer les TR par une boucle jinja plus tard -->
+                <tr style="border-bottom: 1px solid #555;">
+                    <td style="padding: 15px; border-right: 1px solid #555; font-weight: bold;">Réseaux & Protocoles</td>
+                    <td style="padding: 15px; border-right: 1px solid #555;">Capture Wireshark (TP1)</td>
+                    <td style="padding: 15px; border-right: 1px solid #555;">28 Octobre 2026</td>
+                    <td style="padding: 15px; color: #d9534f; font-weight: bold;">À rendre</td>
+                </tr>
+                <tr>
+                    <td style="padding: 15px; border-right: 1px solid #555; font-weight: bold;">Cybersécurité Web</td>
+                    <td style="padding: 15px; border-right: 1px solid #555;">Rapport d'audit XSS</td>
+                    <td style="padding: 15px; border-right: 1px solid #555;">02 Novembre 2026</td>
+                    <td style="padding: 15px; color: #5cb85c; font-weight: bold;">Terminé</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Annonces{% endblock %}
+
+{% block content %}
+    <h1 style="color: #333; margin-top: -20px; font-weight: normal; font-size: 1.5rem;">Bonjour {{ user_name | default('Étudiant(e)') }}</h1>
+    
+    <div style="text-align: center; margin-bottom: 40px;">
+        <h2 class="edt-main-title" style="font-size: 4rem;">Annonces</h2>
+    </div>
+
+    <!-- Boucle Jinja prévue pour les annonces -->
+    <!-- { % for annonce in annonces % } -->
+
+    <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+        
+        <div style="background-color: white; border: 2px solid #555; padding: 20px; box-shadow: 4px 4px 0 #555;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
+                <strong style="color: #1e3a8a; font-size: 1.1rem;">Administration</strong>
+                <span style="color: #777; font-size: 0.9rem;">Aujourd'hui à 09:30</span>
+            </div>
+            <h3 style="margin-top: 0;">Fermeture du campus à 18h exceptionnellement</h3>
+            <p style="margin-bottom: 0;">Le campus fermera ses portes plus tôt ce soir en raison d'une intervention sur le réseau électrique. Merci de bien vouloir quitter les lieux avant 18h.</p>
+        </div>
+
+        <div style="background-color: white; border: 2px solid #555; padding: 20px; box-shadow: 4px 4px 0 #555;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
+                <strong style="color: #1e3a8a; font-size: 1.1rem;">M. Einstein</strong>
+                <span style="color: #777; font-size: 0.9rem;">Hier à 14:15</span>
+            </div>
+            <h3 style="margin-top: 0;">Rappel : Examen de relativité</h3>
+            <p style="margin-bottom: 0;">N'oubliez pas que votre examen approche. Révisez bien les équations de Lorentz.</p>
+        </div>
+
+    </div>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Notes{% endblock %}
+
+{% block content %}
+    <!-- En-tête -->
+    <div style="text-align: center; margin-top: 10px; margin-bottom: 20px;">
+        <h2 style="font-size: 5rem; font-weight: 300; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: black; text-shadow: 3px 3px 0px rgba(0,0,0,0.3); margin: 0; letter-spacing: -2px;">Notes</h2>
+    </div>
+
+    <!-- Bannière Semestre -->
+    <div style="background-color: #ebd1ea; border: 1px solid #ccc; padding: 20px; border-radius: 8px; text-align: center; font-size: 1.1rem; color: #333; margin-bottom: 40px; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);">
+        Relevé de Notes 1er Semestre
+    </div>
+
+    <!-- Grille des Cartes -->
+    <div class="notes-grid">
+        
+        <!-- CARTE 1: Devops -->
+        <div class="note-card">
+            <!-- Header toujours visible -->
+            <div class="note-summary">
+                <div class="note-title">Devops</div>
+                <div class="note-moyenne-bloc">
+                    <span class="note-label">Moy:</span> 
+                    <span class="note-value">10</span>
+                </div>
+                <!-- Flèche pour ouvrir/fermer -->
+                <button class="expand-btn" onclick="toggleDetails(this)">⬇</button>
+            </div>
+
+            <!-- Détails Cachés par défaut -->
+            <div class="note-details" style="display: none;">
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Note</th>
+                            <th>Coeff</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Programmation</td>
+                            <td>15,25</td>
+                            <td>0.5</td>
+                        </tr>
+                        <tr>
+                            <td>Audit</td>
+                            <td>16</td>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <td>Site web</td>
+                            <td>18</td>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <td>Oral</td>
+                            <td class="bold-note">9</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td>Python</td>
+                            <td>14.5</td>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <td>Ansible</td>
+                            <td class="bold-note">2.10</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td>Chiffrement</td>
+                            <td class="gold-note">20</td>
+                            <td>4</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CARTE 2: Cryptographie -->
+        <div class="note-card">
+            <div class="note-summary">
+                <div class="note-title">Cryptographie</div>
+                <div class="note-moyenne-bloc">
+                    <span class="note-label">Moy:</span> 
+                    <span class="note-value">16</span>
+                </div>
+                <button class="expand-btn" onclick="toggleDetails(this)">⬇</button>
+            </div>
+            <div class="note-details" style="display: none;">
+                <table class="details-table">
+                    <thead><tr><th></th><th>Note</th><th>Coeff</th></tr></thead>
+                    <tbody>
+                        <tr><td>Projet Symétrique</td><td>18</td><td>2</td></tr>
+                        <tr><td>Examen Final</td><td>15</td><td>3</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CARTE 3: Reverse -->
+        <div class="note-card">
+            <div class="note-summary">
+                <div class="note-title">Reverse</div>
+                <div class="note-moyenne-bloc">
+                    <span class="note-label">Moy:</span> 
+                    <span class="note-value">10</span>
+                </div>
+                <button class="expand-btn" onclick="toggleDetails(this)">⬇</button>
+            </div>
+            <div class="note-details" style="display: none;">
+                <table class="details-table">
+                    <thead><tr><th></th><th>Note</th><th>Coeff</th></tr></thead>
+                    <tbody>
+                        <tr><td>Assembleur</td><td>08</td><td>2</td></tr>
+                        <tr><td>CTF</td><td>12</td><td>2</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CARTE 4: Pentest -->
+        <div class="note-card">
+            <div class="note-summary">
+                <div class="note-title">Pentest</div>
+                <div class="note-moyenne-bloc">
+                    <span class="note-label">Moy:</span> 
+                    <span class="note-value">8</span>
+                </div>
+                <button class="expand-btn" onclick="toggleDetails(this)">⬇</button>
+            </div>
+            <div class="note-details" style="display: none;">
+                <table class="details-table">
+                    <thead><tr><th></th><th>Note</th><th>Coeff</th></tr></thead>
+                    <tbody>
+                        <tr><td>Réseau</td><td>06</td><td>2</td></tr>
+                        <tr><td>Web Exploitation</td><td>10</td><td>2</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script pour l'ouverture/fermeture des cartes -->
+    <script>
+        function toggleDetails(btn) {
+            const card = btn.closest('.note-card');
+            const details = card.querySelector('.note-details');
+            
+            // Si fermé, on ouvre
+            if (details.style.display === "none") {
+                details.style.display = "block";
+                btn.innerText = "⬆";
+                card.classList.add("expanded");
+            } else {
+                // Si ouvert, on ferme
+                details.style.display = "none";
+                btn.innerText = "⬇";
+                card.classList.remove("expanded");
+            }
+        }
+    </script>
+{% endblock %}

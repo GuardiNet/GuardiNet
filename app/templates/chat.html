@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Chat privé{% endblock %}
+
+{% block content %}
+    <h1 style="color: #333; margin-top: -20px; font-weight: normal; font-size: 1.5rem;">Bonjour {{ user_name | default('Étudiant(e)') }}</h1>
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 class="edt-main-title" style="font-size: 4rem;">Messagerie</h2>
+    </div>
+
+    <div style="max-width: 1000px; margin: 0 auto; display: flex; height: 600px; background-color: white; border: 2px solid #555; box-shadow: 4px 4px 0 #555;">
+        
+        <!-- Liste des contacts -->
+        <div style="width: 30%; border-right: 2px solid #555; display: flex; flex-direction: column;">
+            <div style="background-color: #c1d3c5; padding: 15px; border-bottom: 2px solid #555; font-weight: bold; text-align: center;">
+                Contacts
+            </div>
+            <div style="flex-grow: 1; overflow-y: auto;">
+                
+                <!-- Boucle Jinja prévue pour les contacts -->
+                <!-- { % for contact in contacts % } -->
+
+                <!-- Contact Actif -->
+                <div style="padding: 15px; border-bottom: 1px solid #ccc; background-color: #e4efe7; cursor: pointer;">
+                    <strong>M. Einstein</strong> <br>
+                    <span style="font-size: 0.8rem; color: #555;">En ligne</span>
+                </div>
+                <!-- Autre Contact -->
+                <div style="padding: 15px; border-bottom: 1px solid #ccc; cursor: pointer;">
+                    <strong>M. Epstein</strong> <br>
+                    <span style="font-size: 0.8rem; color: #999;">Hors ligne</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Fenêtre de chat -->
+        <div style="width: 70%; display: flex; flex-direction: column;">
+            <div style="background-color: #e4efe7; padding: 15px; border-bottom: 2px solid #555; font-weight: bold;">
+                <span id="current-chat-name">Discussion avec M. Einstein</span>
+            </div>
+            
+            <div style="flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #fafafa;">
+                
+                <!-- Boucle Jinja prévue pour les messages de la conversation active -->
+                <!-- { % for message in messages % } -->
+
+                <div style="align-self: flex-start; background-color: #d6d6f5; padding: 10px 15px; border-radius: 10px; max-width: 70%; border: 1px solid #555;">
+                    <strong style="font-size: 0.8rem; color: #333;">M. Einstein</strong><br>
+                    Bonjour, avez-vous pu vérifier l'équation que nous avons vue hier ?
+                </div>
+
+                <div style="align-self: flex-end; background-color: #c1d3c5; padding: 10px 15px; border-radius: 10px; max-width: 70%; border: 1px solid #555;">
+                    <strong style="font-size: 0.8rem; color: #333;">Vous</strong><br>
+                    Oui monsieur, j'ai préparé un script Python pour la simuler et je vous l'envoie de suite.
+                </div>
+            </div>
+
+            <!-- Zone de saisie -->
+            <div style="padding: 15px; border-top: 2px solid #555; background-color: white;">
+                <form action="#" method="POST" style="display: flex; gap: 10px;">
+                    <input type="text" placeholder="Écrivez votre message..." style="flex-grow: 1; padding: 10px; border: 1px solid #555; font-family: inherit;">
+                    <button type="submit" style="padding: 10px 20px; background-color: #8c8c8c; color: white; border: 1px solid #555; font-weight: bold; cursor: pointer;">Envoyer</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

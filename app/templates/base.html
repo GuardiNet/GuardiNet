@@ -9,50 +9,71 @@
 <body>
     <div class="dashboard-container">
         <!-- Barre latérale -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-inner">
+                <div class="brand-logo" style="margin-top: 15px;">
+                    <!-- Placeholder pour le vrai logo, on utilisera /static/img/logo.png plus tard -->
+                    {% if logo_url %}
+                        <img src="{{ logo_url }}" alt="GuardiNet Logo">
+                    {% else %}
+                        <h2 style="margin: 0; color: #1e3a8a;">GuardiNet</h2>
+                    {% endif %}
+                </div>
+
+                <div class="profile-section">
+                    <!-- Image avatar utilisateur -->
+                    <img src="https://studio-mir.fr/wp-content/uploads/2022/04/photo-professionelle-cv-job-etudiant-1-1.jpg" alt="Avatar">
+                    <span style="font-size: 1.8rem; font-weight: 300;">Compte</span>
+                </div>
+
+                <nav>
+                    <ul class="nav-menu">
+                        <li>
+                            <a href="{{ url_for('main.dashboard') }}" class="nav-item">
+                                <span class="icon">★</span> Emploi du temps
+                                {% if active_page == 'dashboard' %}<div class="active-tab-indicator"></div>{% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('main.devoirs') }}" class="nav-item">
+                                <span class="icon">★</span> Devoirs
+                                {% if active_page == 'devoirs' %}<div class="active-tab-indicator"></div>{% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('main.annonces') }}" class="nav-item">
+                                <span class="icon">★</span> Annonces
+                                <span class="badge">{{ nb_annonces|default(1) }}</span>
+                                {% if active_page == 'annonces' %}<div class="active-tab-indicator"></div>{% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('main.notes') }}" class="nav-item">
+                                <span class="icon">★</span> Notes
+                                {% if active_page == 'notes' %}<div class="active-tab-indicator"></div>{% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('main.chat') }}" class="nav-item" style="position: relative;">
+                                <span class="icon">★</span> Chat privé
+                                {% if active_page == 'chat' %}<div class="active-tab-indicator"></div>{% endif %}
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="announcement-box">
+                    <div class="announcement-header">Dernière annonce</div>
+                    <div class="announcement-content"></div>
+                </div>
+
+                <a href="#" class="logout-btn">Déconnexion</a>
+            </div>
             
-            <div class="brand-logo" style="margin-top: 15px;">
-                <!-- Placeholder pour le vrai logo, on utilisera /static/img/logo.png plus tard -->
-                {% if logo_url %}
-                    <img src="{{ logo_url }}" alt="GuardiNet Logo">
-                {% else %}
-                    <h2 style="margin: 0; color: #1e3a8a;">GuardiNet</h2>
-                {% endif %}
+            <!-- Toggle Bouton -->
+            <div class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">
+                <span id="toggle-icon">⬅</span>
             </div>
-
-            <div class="profile-section">
-                <!-- Image avatar utilisateur -->
-                <img src="https://studio-mir.fr/wp-content/uploads/2022/04/photo-professionelle-cv-job-etudiant-1-1.jpg" alt="Avatar">
-                <span>Compte</span>
-            </div>
-
-            <nav>
-                <ul class="nav-menu">
-                    <li><a href="#" class="nav-item"><span class="icon">★</span> Emploi du temps</a></li>
-                    <li><a href="#" class="nav-item"><span class="icon">★</span> Devoirs</a></li>
-                    <li>
-                        <a href="#" class="nav-item">
-                            <span class="icon">★</span> Annonces
-                            <span class="badge">1</span>
-                        </a>
-                    </li>
-                    <li><a href="#" class="nav-item"><span class="icon">★</span> Notes</a></li>
-                    <li>
-                        <a href="#" class="nav-item" style="position: relative;">
-                            <span class="icon">★</span> Chat privé
-                            <!-- Le petit triangle blanc vu sur la maquette Canva -->
-                            <!-- <div class="active-tab-indicator"></div> -->
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            <div class="announcement-box">
-                <div class="announcement-header">Dernière annonce</div>
-                <div class="announcement-content"></div>
-            </div>
-
-            <a href="#" class="logout-btn">Déconnexion</a>
         </aside>
 
         <!-- Contenu Principal -->
@@ -61,5 +82,30 @@
             {% endblock %}
         </main>
     </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleIcon = document.getElementById('toggle-icon');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                sidebar.classList.remove('collapsed');
+                toggleIcon.innerText = '⬅';
+            } else {
+                sidebar.classList.add('collapsed');
+                toggleIcon.innerText = '➡';
+            }
+        }
+
+        // Sur mobile, on rétracte par défaut au chargement
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const toggleIcon = document.getElementById('toggle-icon');
+                sidebar.classList.add('collapsed');
+                toggleIcon.innerText = '➡';
+            }
+        });
+    </script>
 </body>
 </html>

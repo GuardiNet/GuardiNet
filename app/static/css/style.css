@@ -23,11 +23,52 @@ body, html {
 /* Sidebar Styling */
 .sidebar {
     width: 250px;
+    min-width: 250px;
     background-color: var(--sidebar-bg);
-    display: flex;
-    flex-direction: column;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
     position: relative;
+    transition: margin-left 0.3s ease;
+    z-index: 10;
+}
+
+.sidebar.collapsed {
+    margin-left: -250px;
+}
+
+.sidebar-inner {
+    width: 250px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Toggle arrow button container */
+.sidebar-toggle {
+    position: absolute;
+    right: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 25px;
+    height: 60px;
+    background-color: #a5bba9;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+    border: 2px solid #555;
+    border-left: none; /* Merge effect */
+    border-radius: 0 8px 8px 0; /* Onglet */
+    color: var(--text-color);
+    font-size: 1rem;
+    z-index: 100;
+    transition: background-color 0.2s;
+}
+
+.sidebar-toggle:hover {
+    background-color: #8da491;
 }
 
 .profile-section {
@@ -168,186 +209,430 @@ body, html {
 }
 
 /* ================================================== */
-/* STYLES SPÉCIFIQUES POUR L'EMPLOI DU TEMPS (EDT)    */
+/* STYLES SPÉCIFIQUES POUR LA PAGE NOTES / RELEVÉS    */
 /* ================================================== */
 
-.edt-main-title {
-    font-size: 5rem;
-    font-weight: 300;
-    font-family: Arial, Helvetica, sans-serif;
-    color: black;
-    text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.4);
-    letter-spacing: 2px;
-    margin: 0;
-    display: inline-block;
+.notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
 }
 
-.edt-container {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    width: 100%;
-    max-width: 1500px; /* Agrandi */
+.note-card {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Panneau de navigation (Flèches + Liste déroulante) */
-.edt-nav-panel {
-    background-color: #a5bba9;
-    padding: 15px;
-    border: 2px solid #555;
+.note-card.expanded {
+    box-shadow: 6px 6px 0px rgba(0,0,0,0.3);
+    border: 1px solid #777;
+}
+
+.note-summary {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    width: 180px; /* Légèrement élargi */
-    box-shadow: inset 0px 0px 5px rgba(0,0,0,0.1);
-}
-
-.edt-week-display {
-    text-align: center;
-    font-weight: bold;
-    font-size: 0.9rem;
-    color: #000;
-    margin-top: -5px;
-    background: rgba(255,255,255,0.4);
-    padding: 5px;
-    border-radius: 4px;
-}
-
-.edt-arrows {
-    display: flex;
-    justify-content: space-between;
-}
-
-.edt-arrow-btn {
-    background-color: #8c8c8c;
-    border: 1px solid #555;
-    color: white;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 4px;
-    transition: transform 0.1s;
-    display: flex;
     align-items: center;
-    justify-content: center;
-}
-
-.edt-arrow-btn:hover {
-    background-color: #7a7a7a;
-}
-
-.edt-arrow-btn:active {
-    transform: scale(0.9);
-}
-
-.edt-dropdown {
-    width: 100%;
-    padding: 5px;
-    border: 1px solid #555;
-    font-family: inherit;
-    font-size: 0.85rem;
-    text-align: center;
-}
-
-/* Table Emploi du Temps */
-.edt-table-wrapper {
-    flex-grow: 1;
+    padding: 20px;
     position: relative;
     background-color: white;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.05); /* Ombre légère pour donner du volume */
 }
 
-.edt-table {
+.note-title {
+    font-size: 1.2rem;
+    color: #333;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.note-moyenne-bloc {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.note-label {
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.note-value {
+    font-size: 3rem;
+    font-weight: 300;
+    color: #000;
+}
+
+.expand-btn {
+    width: 100%;
+    background-color: #bccbc0;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    padding: 5px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 15px;
+    height: 35px;
+}
+
+.expand-btn:hover {
+    background-color: #a5bba9;
+}
+
+/* Détails du tableau s'affichant en dessous */
+.note-details {
+    border-top: 2px solid #555;
+    background-color: white;
+}
+
+/* Astuce CSS pour la classe 'expanded' -> le header de la carte s'adapte comme le screen */
+.note-card.expanded .note-summary {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+    background-color: #f9f9f9;
+}
+
+.note-card.expanded .note-title {
+    width: auto;
+    margin-bottom: 0;
+    font-weight: bold;
+}
+
+.note-card.expanded .note-moyenne-bloc {
+    margin-bottom: 0;
+}
+
+.note-card.expanded .note-label {
+    font-size: 1rem;
+}
+.note-card.expanded .note-value {
+    font-size: 1.2rem;
+}
+.note-card.expanded .expand-btn {
+    width: auto;
+    margin-top: 0;
+    height: auto;
+    padding: 5px 15px;
+}
+
+/* Tableau à l'intérieur */
+.details-table {
     width: 100%;
     border-collapse: collapse;
-    border: 2px solid #555;
-    table-layout: fixed; /* Colonnes de taille égale */
+    text-align: left;
 }
 
-.edt-table th, 
-.edt-table td {
-    border: 1px solid #555;
-    padding: 0;
-    text-align: center;
+.details-table th, 
+.details-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
 }
 
-.edt-table thead th {
-    background-color: #c1d3c5;
+.details-table th {
+    font-weight: normal;
+    color: #555;
+    padding-top: 15px;
+}
+
+.details-table td:first-child {
+    color: #333;
+}
+
+.details-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Couleurs spéciales pour les notes */
+.bold-note {
     font-weight: bold;
-    font-size: 1.2rem; /* Plus grand */
-    padding: 8px 0;
-    height: 40px;
+    text-decoration: underline;
+    color: #000;
 }
 
-.edt-table tbody td {
-    height: 100px; /* Plus grand (avant 80px) */
-    vertical-align: top;
+.gold-note {
+    font-weight: bold;
+    color: #ffd700; /* Jaune / Or */
+}
+
+/* ================================================== */
+/* STYLES SPÉCIFIQUES POUR L'EMPLOI DU TEMPS (EDT)    */
+/* NOUVEAU DESIGN STANDARD & EFFICACE                 */
+/* ================================================== */
+
+/* En-tête (Mon planning) */
+.planning-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: -20px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 15px;
+}
+
+.export-btn {
+    background-color: #337ab7;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* Conteneur principal */
+.cal-container {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Barre d'outils (Toolbar) */
+.cal-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.cal-btn-arrow {
+    background-color: white;
+    border: 1px solid #ccc;
+    font-size: 1.2rem;
+    padding: 3px 12px;
+    cursor: pointer;
+    border-radius: 3px;
+    color: #333;
+}
+
+.cal-date-range {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.cal-filters {
+    display: flex;
+    gap: 10px;
+}
+
+.cal-date-picker {
     position: relative;
 }
 
-/* Colonne et Lignes jours (Lundi, Mardi...) */
-.col-day {
-    width: 50px; /* Plus large */
-    background-color: #c1d3c5;
-}
-
-.row-day {
-    background-color: #e4efe7;
-    width: 50px;
-    vertical-align: middle;
-    padding: 10px 0;
-}
-
-.row-day span {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    display: inline-block;
-    letter-spacing: 4px;
-    font-size: 1rem; /* Plus grand */
-    font-weight: bold;
-}
-
-/* Evènements dans l'EDT */
-.edt-event {
-    padding: 5px !important;
-    text-align: left !important;
-    font-size: 0.85rem;
-    line-height: 1.3;
-    overflow: hidden;
-}
-
-.event-time {
-    font-weight: bold;
-    font-size: 0.8rem;
-    display: block;
+.cal-date-picker input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 100px;
     text-align: center;
-    margin-bottom: 3px;
 }
 
-/* Couleurs des cours */
-.event-purple {
-    background-color: #d6d6f5; /* Violet clair Einstein */
-}
-
-.event-pink {
-    background-color: #f5c6cb; /* Rose Epstein */
-}
-
-/* Fausse Scrollbar à droite pour coller au design Canva */
-.fake-scrollbar {
+.cal-icon-cal {
     position: absolute;
-    right: -15px;
-    top: 0;
-    bottom: 0;
-    width: 10px;
-    background-color: #cfd8dc;
-    border: 1px solid #555;
-    border-left: none;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 0.9rem;
 }
 
-.fake-thumb {
-    width: 100%;
-    height: 30%;
-    background-color: #8c8c8c;
-    border-radius: 5px;
-    margin-top: 40px;
+.cal-dropdown {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background-color: white;
+}
+
+/* Grille du Calendrier */
+.cal-grid {
+    display: flex;
+    background-color: white;
+    overflow-x: auto;
+}
+
+/* Colonne des heures */
+.cal-time-col {
+    width: 50px;
+    min-width: 50px;
+    border-right: 1px solid #ddd;
+    background-color: #f9f9f9;
+}
+
+.cal-time-header {
+    height: 40px;
+    border-bottom: 1px solid #ddd;
+}
+
+.cal-time-slots {
+    /* 16 heures * 60px = 960px */
+    position: relative;
+    height: 960px;
+}
+
+.time-slot {
+    height: 60px;
+    box-sizing: border-box;
+    border-bottom: 1px solid transparent;
+    text-align: right;
+    padding-right: 5px;
+    font-size: 0.8rem;
+    color: #555;
+    position: relative;
+    top: -8px; /* Ajustement pour centrer sur la ligne */
+}
+
+/* Colonnes des Jours */
+.cal-day-col {
+    flex: 1;
+    min-width: 120px; /* Minimum width sur desktop */
+    border-right: 1px solid #ddd;
+}
+
+.cal-day-col:last-child {
+    border-right: none;
+}
+
+.cal-day-header {
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+    color: #4a6b53; /* Vert foncé assorti au thème */
+}
+
+.cal-day-content {
+    position: relative;
+    height: 960px;
+    background-color: #f4faf6; /* Vert très clair différent de l'EDT */
+    /* Lignes pointillées ou pleines tous les 60px */
+    background-image: linear-gradient(to bottom, #cfd8dc 1px, transparent 1px);
+    background-size: 100% 60px;
+}
+
+/* Les Évènements (Cours) */
+.cal-event {
+    position: absolute;
+    width: 96%;
+    left: 2%;
+    padding: 5px;
+    box-sizing: border-box;
+    font-size: 0.75rem;
+    color: #333;
+    overflow: hidden;
+    line-height: 1.2;
+    z-index: 5;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+
+.event-blue {
+    background-color: #e1f5fe;
+    border-left: 4px solid #4fc3f7;
+    border-top: 1px solid #b3e5fc;
+    border-right: 1px solid #b3e5fc;
+    border-bottom: 1px solid #b3e5fc;
+}
+
+.event-green {
+    background-color: #e8f5e9;
+    border-left: 4px solid #81c784;
+    border-top: 1px solid #c8e6c9;
+    border-right: 1px solid #c8e6c9;
+    border-bottom: 1px solid #c8e6c9;
+}
+
+/* ================================================== */
+/* MEDIA QUERIES (RESPONSIVE)                         */
+/* ================================================== */
+
+@media (max-width: 992px) {
+    /* Cache les flèches côté droit sur mobile (si besoin) */
+    .desktop-only {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        display: block;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .sidebar {
+        width: 85%;
+        min-width: 85%;
+        position: fixed;
+        height: 100vh;
+        z-index: 1000;
+        box-sizing: border-box;
+        margin-left: 0;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+    }
+
+    .sidebar.collapsed {
+        margin-left: -85%; 
+        box-shadow: none;
+    }
+
+    .sidebar-inner {
+        width: 100%;
+    }
+
+    .sidebar-toggle {
+        right: -30px;
+        background-color: var(--sidebar-bg);
+        box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+    }
+
+    .main-content {
+        padding: 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Le planning devient sur une colonne de jours */
+    .cal-toolbar {
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+    }
+    
+    .cal-date-range {
+        order: -1;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+    .cal-day-col {
+        display: none; /* Cache tous les jours par défaut sur mobile */
+    }
+
+    .cal-day-col.active {
+        display: block; /* Montre uniquement le jour sélectionné (ex: Vendredi) */
+    }
+
+    .planning-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .export-btn {
+        width: 100%;
+    }
 }
