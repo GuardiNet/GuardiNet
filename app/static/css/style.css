@@ -1,6 +1,6 @@
-:root {
-    --sidebar-bg: #c1d3c5; /* Vert sauge clair / grisâtre */
-    --main-bg: #e4e8ef;    /* Bleu/Gris très clair */
+﻿:root {
+    --sidebar-bg: #c1d3c5; /* Vert sauge clair / grisÃ¢tre */
+    --main-bg: #e4e8ef;    /* Bleu/Gris trÃ¨s clair */
     --text-color: #000000;
     --active-item: #ffffff;
     --notification-red: #ff7675;
@@ -211,7 +211,7 @@ body, html {
 }
 
 /* ================================================== */
-/* STYLES SPÉCIFIQUES POUR LA PAGE NOTES / RELEVÉS    */
+/* STYLES SPÃ‰CIFIQUES POUR LA PAGE NOTES / RELEVÃ‰S    */
 /* ================================================== */
 
 .notes-grid {
@@ -219,7 +219,7 @@ body, html {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
     padding: 20px 0;
-    align-items: start; /* Empêche les cartes de s'étirer verticalement quand une voisine s'agrandit */
+    align-items: start; /* EmpÃªche les cartes de s'Ã©tirer verticalement quand une voisine s'agrandit */
 }
 
 .note-card {
@@ -289,7 +289,7 @@ body, html {
     background-color: #a5bba9;
 }
 
-/* Détails du tableau s'affichant en dessous */
+/* DÃ©tails du tableau s'affichant en dessous */
 .note-details {
     border-top: 2px solid #555;
     background-color: white;
@@ -327,7 +327,7 @@ body, html {
     padding: 5px 15px;
 }
 
-/* Tableau à l'intérieur */
+/* Tableau Ã  l'intÃ©rieur */
 .details-table {
     width: 100%;
     border-collapse: collapse;
@@ -355,7 +355,7 @@ body, html {
     border-bottom: none;
 }
 
-/* Couleurs spéciales pour les notes */
+/* Couleurs spÃ©ciales pour les notes */
 .bold-note {
     font-weight: bold;
     text-decoration: underline;
@@ -368,11 +368,11 @@ body, html {
 }
 
 /* ================================================== */
-/* STYLES SPÉCIFIQUES POUR L'EMPLOI DU TEMPS (EDT)    */
+/* STYLES SPÃ‰CIFIQUES POUR L'EMPLOI DU TEMPS (EDT)    */
 /* NOUVEAU DESIGN STANDARD & EFFICACE                 */
 /* ================================================== */
 
-/* En-tête (Mon planning) */
+/* En-tÃªte (Mon planning) */
 .planning-header {
     display: flex;
     justify-content: space-between;
@@ -514,19 +514,19 @@ body, html {
     text-align: center;
     border-bottom: 1px solid #ddd;
     font-weight: bold;
-    color: #4a6b53; /* Vert foncé assorti au thème */
+    color: #4a6b53; /* Vert foncÃ© assorti au thÃ¨me */
 }
 
 .cal-day-content {
     position: relative;
     height: 960px;
-    background-color: #f4faf6; /* Vert très clair différent de l'EDT */
-    /* Lignes pointillées ou pleines tous les 60px */
+    background-color: #f4faf6; /* Vert trÃ¨s clair diffÃ©rent de l'EDT */
+    /* Lignes pointillÃ©es ou pleines tous les 60px */
     background-image: linear-gradient(to bottom, #cfd8dc 1px, transparent 1px);
     background-size: 100% 60px;
 }
 
-/* Les Évènements (Cours) */
+/* Les Ã‰vÃ¨nements (Cours) */
 .cal-event {
     position: absolute;
     width: 96%;
@@ -558,7 +558,7 @@ body, html {
 }
 
 /* ================================================== */
-/* STYLES SPÉCIFIQUES POUR LA MESSAGERIE (CHAT)       */
+/* STYLES SPÃ‰CIFIQUES POUR LA MESSAGERIE (CHAT)       */
 /* ================================================== */
 
 .chat-container {
@@ -614,7 +614,7 @@ body, html {
 /* ================================================== */
 
 @media (max-width: 992px) {
-    /* Cache les flèches côté droit sur mobile (si besoin) */
+    /* Cache les flÃ¨ches cÃ´tÃ© droit sur mobile (si besoin) */
     .desktop-only {
         display: none;
     }
@@ -633,6 +633,64 @@ body, html {
         max-width: 85%;
         position: fixed;
         left: -100%;
+        height: 100vh;
+        z-index: 1000;
+        box-sizing: border-box;
+        margin-left: 0;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+    }
+
+    .sidebar.collapsed {
+        margin-left: -85%;
+        box-shadow: none;
+    }
+
+    .sidebar-inner {
+        width: 100%;
+    }
+
+    .sidebar-toggle {
+        right: -30px;
+        background-color: var(--sidebar-bg);
+        box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+    }
+
+    .main-content {
+        padding: 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Le planning devient sur une colonne de jours */
+    .cal-toolbar {
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .cal-date-range {
+        order: -1;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+    .cal-day-col {
+        display: none; /* Cache tous les jours par défaut sur mobile */
+    }
+
+    .cal-day-col.active {
+        display: block; /* Montre uniquement le jour sélectionné */
+    }
+
+    .planning-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .export-btn {
+        width: 100%;
     }
 
     /* CHAT RESPONSIVE */
@@ -665,66 +723,5 @@ body, html {
 
     .send-icon {
         display: inline !important;
-    }
-}
-        position: fixed;
-        height: 100vh;
-        z-index: 1000;
-        box-sizing: border-box;
-        margin-left: 0;
-        box-shadow: 5px 0 15px rgba(0,0,0,0.3);
-    }
-
-    .sidebar.collapsed {
-        margin-left: -85%; 
-        box-shadow: none;
-    }
-
-    .sidebar-inner {
-        width: 100%;
-    }
-
-    .sidebar-toggle {
-        right: -30px;
-        background-color: var(--sidebar-bg);
-        box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
-    }
-
-    .main-content {
-        padding: 15px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    /* Le planning devient sur une colonne de jours */
-    .cal-toolbar {
-        flex-wrap: wrap;
-        gap: 15px;
-        justify-content: center;
-    }
-    
-    .cal-date-range {
-        order: -1;
-        width: 100%;
-        text-align: center;
-        margin-bottom: 5px;
-    }
-
-    .cal-day-col {
-        display: none; /* Cache tous les jours par défaut sur mobile */
-    }
-
-    .cal-day-col.active {
-        display: block; /* Montre uniquement le jour sélectionné (ex: Vendredi) */
-    }
-
-    .planning-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    
-    .export-btn {
-        width: 100%;
     }
 }

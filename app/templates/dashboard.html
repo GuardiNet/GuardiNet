@@ -11,21 +11,20 @@
     <div class="cal-container">
         <!-- Toolbar (Flèches, Dates, Filtres) -->
         <div class="cal-toolbar">
-            <button class="cal-btn-arrow">&larr;</button>
-            <div class="cal-date-range">23 &ndash; 28 mars 2026</div>
+            <a href="{{ url_for('main.dashboard', view=view, date=prev_date) }}" class="cal-btn-arrow" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">&larr;</a>
+            <div class="cal-date-range">{{ date_label }}</div>
             
             <div class="cal-filters">
                 <div class="cal-date-picker">
-                    <input type="text" value="27/03/2026" readonly>
-                    <span class="cal-icon-cal">📅</span>
+                    <input type="date" value="{{ current_date }}" onchange="window.location.href='?view={{ view }}&date='+this.value">
                 </div>
-                <select class="cal-dropdown">
-                    <option value="hebdo">Hebdomadaire</option>
-                    <option value="jour">Journalier</option>
+                <select class="cal-dropdown" onchange="window.location.href='?view='+this.value+'&date={{ current_date }}'">
+                    <option value="hebdo" {% if view == 'hebdo' %}selected{% endif %}>Hebdomadaire</option>
+                    <option value="jour" {% if view == 'jour' %}selected{% endif %}>Journalier</option>
                 </select>
             </div>
             
-            <button class="cal-btn-arrow desktop-only">&rarr;</button>
+            <a href="{{ url_for('main.dashboard', view=view, date=next_date) }}" class="cal-btn-arrow desktop-only" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">&rarr;</a>
         </div>
 
         {% if is_mobile %}
@@ -60,108 +59,26 @@
             </div>
 
             <!-- Colonnes des Jours dynamiques depuis le backend -->
-            {% if schedule_days %}
-                {% for day in schedule_days %}
-                    <div class="cal-day-col {% if day.is_active_mobile %}active{% endif %}">
-                        <div class="cal-day-header">{{ day.name }}</div>
-                        <div class="cal-day-content">
-                            {% for event in day.events %}
-                                <!-- 
-                                   Calcul du positionnement:
-                                   top = (heure_debut - 6) * 60 + minutes_debut
-                                   height = durée_en_minutes
-                                -->
-                                <div class="cal-event {{ event.color_class }}" style="top: {{ event.top_px }}px; height: {{ event.height_px }}px;">
-                                    <strong>{{ event.time_str }}</strong><br>
-                                    {{ event.title }}<br>
-                                    {% if event.teacher %}{{ event.teacher }}<br>{% endif %}
-                                    {% if event.location %}{{ event.location }}{% endif %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <!-- DONNÉES FACTICES DE DÉMONSTRATION (Affichées si aucun retour backend pour l'instant) -->
-                <!-- Colonne Lundi -->
-                <div class="cal-day-col">
-                    <div class="cal-day-header">lun. 23/03</div>
+            {% for day in schedule_days %}
+                <div class="cal-day-col {% if day.is_active_mobile %}active{% endif %}">
+                    <div class="cal-day-header">{{ day.name }}</div>
                     <div class="cal-day-content">
-                        <div class="cal-event event-green" style="top: 180px; height: 30px;">
-                            <strong>09:00 - 09:30</strong><br>
-                        </div>
-                        <div class="cal-event event-green" style="top: 210px; height: 75px;">
-                            <strong>09:30 - 10:45</strong><br>
-                            CAREER DAYS : Association Walt<br>
-                            Psycho Mantis (Arche)
-                        </div>
+                        {% for event in day.events %}
+                            <!-- 
+                               Calcul du positionnement:
+                               top = (heure_debut - 6) * 60 + minutes_debut
+                               height = durée_en_minutes
+                            -->
+                            <div class="cal-event {{ event.color_class }}" style="top: {{ event.top_px }}px; height: {{ event.height_px }}px;">
+                                <strong>{{ event.time_str }}</strong><br>
+                                {{ event.title }}<br>
+                                {% if event.teacher %}{{ event.teacher }}<br>{% endif %}
+                                {% if event.location %}{{ event.location }}{% endif %}
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
-
-            <!-- Colonne Mardi -->
-            <div class="cal-day-col">
-                <div class="cal-day-header">mar. 24/03</div>
-                <div class="cal-day-content">
-                    <div class="cal-event event-green" style="top: 210px; height: 60px;">
-                        <strong>09:30 - 10:30</strong><br>
-                        CAREER DAYS : Vinci<br>Psycho Mantis
-                    </div>
-                </div>
-            </div>
-
-            <!-- Colonne Mercredi -->
-            <div class="cal-day-col">
-                <div class="cal-day-header">mer. 25/03</div>
-                <div class="cal-day-content">
-                    <!-- 08h à 11h30 = 3h30 = 210px. Top: 120px -->
-                    <div class="cal-event event-green" style="top: 120px; height: 210px;">
-                        <strong>08:00 - 11:30</strong><br>
-                        Développement de solutions web sécurisées ()<br>
-                        BENBOURAHLA Yannis<br>
-                        Larry Wall (Bellini) (CAMPUS PARIS)
-                    </div>
-                </div>
-            </div>
-
-            <!-- Colonne Jeudi -->
-            <div class="cal-day-col">
-                <div class="cal-day-header">jeu. 26/03</div>
-                <div class="cal-day-content">
-                    <!-- 14:45 à 16:15 = 1h30 = 90px. Top = 14h (8h depuis 6h = 480) + 45m = 525px -->
-                    <div class="cal-event event-green" style="top: 525px; height: 90px;">
-                        <strong>14:45 - 16:15</strong><br>
-                        Anglais B2 - LV1 - S2 (Présentiel)<br>
-                        ALBERTSON Jovan
-                    </div>
-                    <!-- 16:15 à 17:45 = 1h30 = 90px. Top = 16h (10h*60=600) + 15m = 615px -->
-                    <div class="cal-event event-green" style="top: 615px; height: 90px;">
-                        <strong>16:15 - 17:45</strong><br>
-                        Anglais B2 - LV2 - S2 (Présentiel)<br>
-                        ALBERTSON Jovan
-                    </div>
-                </div>
-            </div>
-
-            <!-- Colonne Vendredi (Active sur mobile) -->
-            <div class="cal-day-col active">
-                <div class="cal-day-header">ven. 27/03</div>
-                <div class="cal-day-content">
-                    <div class="cal-event event-green" style="top: 120px; height: 210px;">
-                        <strong>08:00 - 11:30</strong><br>
-                        Développement de solutions web sécurisées ()<br>
-                        BENBOURAHLA Yannis<br>
-                        Larry Wall (Bellini) (CAMPUS PARIS)
-                    </div>
-                </div>
-            </div>
-
-                <!-- Colonne Samedi -->
-                <div class="cal-day-col">
-                    <div class="cal-day-header">sam. 28/03</div>
-                    <div class="cal-day-content">
-                    </div>
-                </div>
-            {% endif %}
+            {% endfor %}
         </div>
     </div>
 {% endblock %}

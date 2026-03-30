@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuardiNet - Administration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <style>
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .admin-tab-btn {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--text-color);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        .admin-tab-btn:hover {
+            color: var(--primary-color);
+        }
+        .admin-tab-btn.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        .admin-tab-content {
+            display: none;
+        }
+        .admin-tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Barre latérale d'administration -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <span> GuardiNet</span>
+            </div>
+            <div style="flex-grow: 1;">
+                <h2>Administration</h2>
+                <div style="padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                    <small style="color: var(--text-color);">Connecté en tant que:</small>
+                    <p style="margin: 5px 0 0 0; font-weight: 600;">{{ current_user.get_full_name() }}</p>
+                </div>
+            </div>
+            <nav class="admin-nav">
+                <a href="/dashboard" class="admin-nav-item">
+                    Tableau de bord
+                </a>
+                <a href="/logout" class="admin-nav-item">
+                    Déconnexion
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Contenu principal -->
+        <main class="admin-main">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            <div style="margin-bottom: 20px;">
+                                <div class="error-message">{{ message }}</div>
+                            </div>
+                        {% elif category == 'success' %}
+                            <div style="margin-bottom: 20px;">
+                                <div class="success-message">{{ message }}</div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Onglets d'administration -->
+            <div class="admin-tabs">
+                <button class="admin-tab-btn {% if active_tab == 'create' %}active{% endif %}" onclick="openTab(event, 'create-tab')">
+                    Créer un compte
+                </button>
+                <button class="admin-tab-btn {% if active_tab == 'users' %}active{% endif %}" onclick="openTab(event, 'users-tab')">
+                    Gérer les comptes
+                </button>
+                <button class="admin-tab-btn {% if active_tab == 'password_resets' %}active{% endif %}" onclick="openTab(event, 'resets-tab')">
+                    Réinitialisation MDP
+                </button>
+                <button class="admin-tab-btn" onclick="openTab(event, 'classes-tab')">Classes</button>
+                <button class="admin-tab-btn" onclick="openTab(event, 'courses-tab')">Cours / Profs</button>
+                <button class="admin-tab-btn" onclick="openTab(event, 'edt-tab')">Emploi du temps</button>
+            </div>
+
+            <!-- TAB 1: Créer un compte -->
+            <div id="create-tab" class="admin-tab-content {% if active_tab == 'create' %}active{% endif %}">
+                <div class="admin-card">
+                    <h2>Créer un nouveau compte</h2>
+                    <form method="POST">
+                        <!-- Sélection du rôle -->
+                        <div class="form-group">
+                            <label>Type de compte</label>
+                            <div class="role-selector">
+                                <div class="role-option">
+                                    <input type="radio" id="role_student" name="role" value="student" checked>
+                                    <label for="role_student">Étudiant</label>
+                                </div>
+                                <div class="role-option">
+                                    <input type="radio" id="role_teacher" name="role" value="teacher">
+                                    <label for="role_teacher">Professeur</label>
+                                </div>
+                                <div class="role-option">
+                                    <input type="radio" id="role_admin" name="role" value="admin">
+                                    <label for="role_admin">Admin</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informations personnelles -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstname">Prénom</label>
+                                <input 
+                                    type="text" 
+                                    id="firstname" 
+                                    name="firstname" 
+                                    placeholder="Jean"
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lastname">Nom</label>
+                                <input 
+                                    type="text" 
+                                    id="lastname" 
+                                    name="lastname" 
+                                    placeholder="Dupont"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Adresse e-mail</label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                placeholder="jean.dupont@guardia.fr"
+                                required
+                            >
+                        </div>
+
+                        <p style="color: #888; font-size: 0.9em; margin: 15px 0;">
+                            Envoyer l'e-mail contenant les accès au nouvel utilisateur
+                        </p>
+
+                        <div class="form-group" style="align-items:center; display:flex; gap: 8px; margin-bottom: 15px;">
+                            <input type="checkbox" id="send_email" name="send_email" checked>
+                            <label for="send_email" style="margin:0;">Envoyer l'e-mail contenant les accès au nouvel utilisateur</label>
+                        </div>
+
+                        <div class="form-row full">
+                            <button type="submit" class="btn-submit"> Créer le compte</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB 2: Gérer les comptes -->
+            <div id="users-tab" class="admin-tab-content {% if active_tab == 'users' %}active{% endif %}">
+                <div class="admin-card">
+                    <h2>Gestion des comptes utilisateurs</h2>
+                    
+                    <!-- Filtres -->
+                    <div class="filters">
+                        <input 
+                            type="text" 
+                            id="search" 
+                            placeholder="Rechercher par nom ou email..." 
+                            class="filter-input"
+                        >
+                        <select id="role-filter" class="filter-select">
+                            <option value="">Tous les rôles</option>
+                            <option value="student">Étudiant</option>
+                            <option value="teacher">Professeur</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <!-- Tableau des utilisateurs -->
+                    <div class="table-responsive">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID Utilisateur</th>
+                                    <th>Prénom</th>
+                                    <th>Nom</th>
+                                    <th>Email</th>
+                                    <th>Rôle</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                {% if users %}
+                                    {% for user in users %}
+                                        <tr data-role="{{ user.role }}" data-search="{{ user.firstname.lower() }}{{ user.lastname.lower() }}{{ user.email.lower() }}">
+                                            <td>{{ user.user_id }}</td>
+                                            <td>{{ user.firstname }}</td>
+                                            <td>{{ user.lastname }}</td>
+                                            <td>{{ user.email }}</td>
+                                            <td>
+                                                <span class="role-badge role-{{ user.role }}">
+                                                    {{ user.role }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="status-{% if user.is_active %}active{% else %}inactive{% endif %}">
+                                                    {% if user.is_active %} Actif{% else %} Inactif{% endif %}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="table-actions">
+                                                    <form method="POST" action="/admin/users/reset-password/{{ user.id }}" style="display: inline;">
+                                                        <button type="submit" class="btn-sm" onclick="return confirm('Envoyer un mot de passe temporaire à {{ user.email }}?');">Réinitialiser</button>
+                                                    </form>
+                                                    <form method="POST" action="/admin/users/toggle/{{ user.id }}" style="display: inline;">
+                                                        <button type="submit" class="btn-sm">
+                                                            {% if user.is_active %}Désactiver{% else %}Activer{% endif %}
+                                                        </button>
+                                                    </form>
+                                                    {% if user.id != current_user.id %}
+                                                        <form method="POST" action="/admin/users/delete/{{ user.id }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr?');">
+                                                            <button type="submit" class="btn-sm delete">Supprimer</button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr class="placeholder-row">
+                                        <td colspan="7" style="text-align: center; padding: 30px;">
+                                            Aucun utilisateur créé pour le moment
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Demandes de réinitialisation de mot de passe -->
+            <div id="resets-tab" class="admin-tab-content {% if active_tab == 'password_resets' %}active{% endif %}">
+                <div class="admin-card">
+                    <h2>Demandes de réinitialisation de mot de passe</h2>
+                    
+                    {% if resets %}
+                        <div class="table-responsive">
+                            <table class="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Demandé le</th>
+                                        <th>Expire le</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reset in resets %}
+                                        <tr>
+                                            <td>{{ reset.email }}</td>
+                                            <td>{{ reset.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                            <td>{{ reset.expires_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                            <td><span class="status-active">⏳ En attente</span></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: 40px; color: #888;">
+                            <p>Aucune demande de réinitialisation en attente</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- TAB: Classes -->
+            <div id="classes-tab" class="admin-tab-content">
+                <div class="admin-card">
+                    <h2>Créer une nouvelle classe</h2>
+                    <form method="POST" action="/admin/infrastructure">
+                        <input type="hidden" name="action" value="create_class">
+                        <div class="form-group">
+                            <label for="class_name">Nom de la classe</label>
+                            <input type="text" id="class_name" name="name" placeholder="Ex: M1 dev" required>
+                        </div>
+                        <div class="form-row full">
+                            <button type="submit" class="btn-submit">Créer la classe</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="admin-card" style="margin-top: 20px;">
+                    <h2>Assigner un étudiant à une classe</h2>
+                    <form method="POST" action="/admin/infrastructure">
+                        <input type="hidden" name="action" value="assign_user_class">
+                        <div class="form-group">
+                            <label for="student_id">Étudiant</label>
+                            <select id="student_id" name="user_id" required>
+                                {% for student in students %}
+                                <option value="{{ student.id }}">{{ student.firstname }} {{ student.lastname }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="assign_class_id">Classe</label>
+                            <select id="assign_class_id" name="class_id" required>
+                                {% for c in classes %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-row full">
+                            <button type="submit" class="btn-submit">Assigner</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB: Cours / Profs -->
+            <div id="courses-tab" class="admin-tab-content">
+                <div class="admin-card">
+                    <h2>Créer un cours (Matière)</h2>
+                    <form method="POST" action="/admin/infrastructure">
+                        <input type="hidden" name="action" value="create_course">
+                        <div class="form-group">
+                            <label for="course_name">Nom du cours</label>
+                            <input type="text" id="course_name" name="name" placeholder="Ex: Développement Web" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="prof_id">Professeur</label>
+                            <select id="prof_id" name="prof_id" required>
+                                {% for t in teachers %}
+                                <option value="{{ t.id }}">{{ t.firstname }} {{ t.lastname }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-row full">
+                            <button type="submit" class="btn-submit">Créer le cours</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB: Emploi du temps -->
+            <div id="edt-tab" class="admin-tab-content">
+                <div class="admin-card">
+                    <h2>Créer un événement (Emploi du temps)</h2>
+                    <form method="POST" action="/admin/infrastructure">
+                        <input type="hidden" name="action" value="create_schedule">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sched_course_id">Cours</label>
+                                <select id="sched_course_id" name="course_id" required>
+                                    {% for course in courses %}
+                                    <option value="{{ course.id }}">{{ course.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="sched_class_id">Classe</label>
+                                <select id="sched_class_id" name="class_id" required>
+                                    {% for c in classes %}
+                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="start_time">Date et heure de début</label>
+                                <input type="datetime-local" id="start_time" name="start_time" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="end_time">Date et heure de fin</label>
+                                <input type="datetime-local" id="end_time" name="end_time" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="room">Salle</label>
+                                <input type="text" id="room" name="room" placeholder="Ex: Salle A1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="event_type">Type d'événement</label>
+                                <input type="text" id="event_type" name="event_type" placeholder="Ex: CM, TD, TP, Examen" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row full">
+                            <button type="submit" class="btn-submit">Ajouter à l'emploi du temps</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            // Hide all tabs
+            const tabs = document.getElementsByClassName('admin-tab-content');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            
+            // Remove active class from all buttons
+            const buttons = document.getElementsByClassName('admin-tab-btn');
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            
+            // Show selected tab and mark button as active
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        // Search and filter functionality
+        document.getElementById('search')?.addEventListener('input', filterTable);
+        document.getElementById('role-filter')?.addEventListener('change', filterTable);
+
+        function filterTable() {
+            const searchInput = document.getElementById('search')?.value.toLowerCase() || '';
+            const roleFilter = document.getElementById('role-filter')?.value || '';
+            const rows = document.querySelectorAll('#users-tbody tr:not(.placeholder-row)');
+            
+            rows.forEach(row => {
+                const searchText = row.dataset.search || '';
+                const role = row.dataset.role || '';
+                
+                const matchSearch = searchText.includes(searchInput);
+                const matchRole = !roleFilter || role === roleFilter;
+                
+                row.style.display = (matchSearch && matchRole) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

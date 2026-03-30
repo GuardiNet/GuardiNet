@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GuardiNet - {% block title %}Tableau de bord{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="dashboard-container">
@@ -23,6 +24,13 @@
 
                 <nav>
                     <ul class="nav-menu">
+                        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                        <li>
+                            <a href="{{ url_for('main.admin_panel') }}" class="nav-item">
+                                <span class="icon">⚙️</span> Administration
+                            </a>
+                        </li>
+                        {% endif %}
                         <li>
                             <a href="{{ url_for('main.dashboard') }}" class="nav-item">
                                 <span class="icon">★</span> Emploi du temps
@@ -68,7 +76,7 @@
                     <div class="announcement-content"></div>
                 </div>
 
-                <a href="#" class="logout-btn">Déconnexion</a>
+                <a href="{{ url_for('main.logout') }}" class="logout-btn">Déconnexion</a>
             </div>
             
             <!-- Toggle Bouton -->
@@ -84,6 +92,8 @@
         </main>
     </div>
 
+    {% block extra_js %}{% endblock %}
+    
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
