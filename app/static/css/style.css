@@ -725,3 +725,31 @@ body, html {
         display: inline !important;
     }
 }
+.event-red {
+    background-color: #ffebee;
+    border-left: 4px solid #ef5350;
+    border-top: 1px solid #ffcdd2;
+    border-right: 1px solid #ffcdd2;
+    border-bottom: 1px solid #ffcdd2;
+}
+.event-yellow {
+    background-color: #fffde7;
+    border-left: 4px solid #ffca28;
+    border-top: 1px solid #ffecb3;
+    border-right: 1px solid #ffecb3;
+    border-bottom: 1px solid #ffecb3;
+}
+.event-purple {
+    background-color: #f3e5f5;
+    border-left: 4px solid #ab47bc;
+    border-top: 1px solid #e1bee7;
+    border-right: 1px solid #e1bee7;
+    border-bottom: 1px solid #e1bee7;
+}
+.event-orange {
+    background-color: #fff3e0;
+    border-left: 4px solid #ffa726;
+    border-top: 1px solid #ffe082;
+    border-right: 1px solid #ffe082;
+    border-bottom: 1px solid #ffe082;
+}

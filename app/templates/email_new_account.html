@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenue sur GuardiNet</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border-top: 4px solid #4CAF50;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .content h2 {
+            color: #4CAF50;
+            font-size: 20px;
+            margin-top: 0;
+        }
+        .credentials {
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .credentials p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .footer {
+            background-color: #eeeeee;
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #777777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Bienvenue sur GuardiNet</h1>
+        </div>
+        <div class="content">
+            <h2>Bonjour {{ user.firstname }},</h2>
+            <p>Votre compte GuardiNet a été créé avec succès. Vous pouvez dès à présent vous connecter pour accéder à votre espace personnel.</p>
+            
+            <div class="credentials">
+                <p><strong>Identifiant (Email) :</strong> {{ user.email }}</p>
+                <p><strong>Mot de passe temporaire :</strong> {{ password }}</p>
+            </div>
+            
+            <p>Lors de votre première connexion, il vous sera demandé de modifier ce mot de passe temporaire pour des raisons de sécurité.</p>
+            
+            <div class="button-container">
+                <a href="{{ login_url }}" class="button" style="color: white;">Se connecter</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 GuardiNet. Tous droits réservés.</p>
+            <p>Cet e-mail a été envoyé automatiquement, merci de ne pas y répondre.</p>
+        </div>
+    </div>
+</body>
+</html>

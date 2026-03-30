@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}Mes Absences{% endblock %}
 
@@ -9,11 +9,9 @@
 
     <!-- Bannière récapitulative -->
     <div style="background-color: #ebd1ea; border: 1px solid #ccc; padding: 20px; border-radius: 8px; text-align: center; font-size: 1.1rem; color: #333; margin-bottom: 40px; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);">
-        <strong>Total :</strong> 3 heures d'absence (dont 1 heure non justifiée)
+        <strong>Total :</strong> {{ total_hours }} heure{% if total_hours > 1 %}s{% endif %} d'absence 
+        (dont <span style="color: #c62828; font-weight: bold;">{{ non_justified_hours }} heure{% if non_justified_hours > 1 %}s{% endif %} non justifiée{% if non_justified_hours > 1 %}s{% endif %}</span>)
     </div>
-
-    <!-- Boucle Jinja prévue pour les absences -->
-    <!-- { % for absence in absences % } -->
     
     <div style="max-width: 1000px; margin: 0 auto; background-color: white; border: 2px solid #555; box-shadow: 4px 4px 0 #555;">
         <table style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -26,18 +24,44 @@
                 </tr>
             </thead>
             <tbody>
-                <tr style="border-bottom: 1px solid #ddd;">
-                    <td style="padding: 15px; border-right: 1px solid #eee; font-weight: bold;">Lundi 12 Février</td>
-                    <td style="padding: 15px; border-right: 1px solid #eee;">Algorithmique avancée</td>
-                    <td style="padding: 15px; border-right: 1px solid #eee;">2h</td>
-                    <td style="padding: 15px; color: #2e7d32; font-weight: bold;">Justifiée</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #ddd; background-color: #fafafa;">
-                    <td style="padding: 15px; border-right: 1px solid #eee; font-weight: bold;">Mardi 05 Mars</td>
-                    <td style="padding: 15px; border-right: 1px solid #eee;">Architecture Système</td>
-                    <td style="padding: 15px; border-right: 1px solid #eee;">1h</td>
-                    <td style="padding: 15px; color: #c62828; font-weight: bold;">Non justifiée</td>
-                </tr>
+                {% if absences %}
+                    {% for absence in absences %}
+                        {% set duration_hours = ((absence.schedule.end_time - absence.schedule.start_time).total_seconds() / 3600) | float %}
+                        {% set is_integer = (duration_hours % 1 == 0) %}
+                        {% set formatted_duration = (duration_hours | int) if is_integer else duration_hours | round(1) %}
+                        
+                        <tr style="border-bottom: 1px solid #ddd; {% if loop.index % 2 == 0 %}background-color: #fafafa;{% endif %}">
+                            <td style="padding: 15px; border-right: 1px solid #eee; font-weight: bold;">
+                                {{ absence.schedule.start_time.strftime('%A %d %B %Y').capitalize() }}<br>
+                                <span style="font-size: 0.85em; font-weight: normal; color: #666;">
+                                    {{ absence.schedule.start_time.strftime('%Hh%M') }} - {{ absence.schedule.end_time.strftime('%Hh%M') }}
+                                </span>
+                            </td>
+                            <td style="padding: 15px; border-right: 1px solid #eee;">
+                                {{ absence.schedule.course.name }}
+                            </td>
+                            <td style="padding: 15px; border-right: 1px solid #eee;">
+                                {{ formatted_duration }}h
+                            </td>
+                            <td style="padding: 15px; font-weight: bold; {% if absence.is_justified %}color: #2e7d32;{% else %}color: #c62828;{% endif %}">
+                                {% if absence.is_justified %}
+                                    Justifiée
+                                    <span style="font-size: 1.2rem; margin-left: 5px;">✅</span>
+                                {% else %}
+                                    Non justifiée
+                                    <span style="font-size: 1.2rem; margin-left: 5px;">❌</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" style="padding: 30px; text-align: center; color: #666;">
+                            <span style="font-size: 2rem; display: block; margin-bottom: 10px;">🎉</span>
+                            Vous n'avez accumulé aucune absence. Félicitations !
+                        </td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
     </div>

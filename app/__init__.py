@@ -2,6 +2,9 @@ from flask import Flask
 from app.config import Config
 from app.models import db, bcrypt, User
 from flask_login import LoginManager
+from flask_mail import Mail
+
+mail = Mail()
 
 def create_app():
     app = Flask(__name__)
@@ -12,6 +15,7 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     bcrypt.init_app(app)
+    mail.init_app(app)
     
     login_manager = LoginManager()
     login_manager.login_view = 'main.login' # Define your login route

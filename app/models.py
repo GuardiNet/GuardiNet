@@ -21,6 +21,7 @@ class User(UserMixin, db.Model):
     class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=True) # For students
     is_active = db.Column(db.Boolean, default=True)
     is_password_temporary = db.Column(db.Boolean, default=False)  # Temporary password flag
+    profile_pic = db.Column(db.String(255), nullable=True, default='default.jpg')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     def __init__(self, **kwargs):
