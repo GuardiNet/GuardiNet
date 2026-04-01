@@ -71,6 +71,7 @@
 
         <div class="chat-input-area">
             <form onsubmit="envoyerMessagePrive(event)" style="display: flex; gap: 10px; width: 100%;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input id="privateMessageInput" type="text" placeholder="Écrivez votre message..." 
                        style="flex-grow: 1; padding: 10px; border: 1px solid #555; font-family: inherit;">
                 <button type="submit" class="chat-send-btn">Envoyer</button>
@@ -105,6 +106,7 @@
 
         <div class="chat-input-area">
             <form onsubmit="envoyerMessageGroupe(event)" style="display: flex; gap: 10px; width: 100%;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input id="groupMessageInput" type="text" placeholder="Écrivez votre message..." 
                        style="flex-grow: 1; padding: 10px; border: 1px solid #555; font-family: inherit;">
                 <button type="submit" class="chat-send-btn">Envoyer</button>
@@ -140,6 +142,7 @@
 
         <div class="chat-input-area" id="ticket-input-area">
             <form onsubmit="envoyerMessageTicket(event)" style="display: flex; gap: 10px; width: 100%;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input id="ticketMessageInput" type="text" placeholder="Écrivez votre réponse..." 
                        style="flex-grow: 1; padding: 10px; border: 1px solid #555; font-family: inherit;">
                 <button type="submit" class="chat-send-btn">Envoyer</button>

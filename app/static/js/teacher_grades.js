@@ -51,7 +51,7 @@ async function loadStudents() {
         try {
             const res = await fetch('/api/teacher/grades', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json' , 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')},
                 body: JSON.stringify({ student_id: studentId, course_id: courseId, value: value, exam_name: examName, coefficient: document.getElementById('examCoeff').value })
             });
             const data = await res.json();

@@ -81,10 +81,10 @@ let currentSchedules = [];
             card.className = `student-card ${isAbsent ? 'absent' : ''}`;
             card.onclick = () => toggleAbsenceLocal(student.id, card);
             
-            const avatarUrl = (student.profile_pic && student.profile_pic !== 'default.jpg') ? `/static/img/profiles/${student.profile_pic}` : 'https://studio-mir.fr/wp-content/uploads/2022/04/photo-professionelle-cv-job-etudiant-1-1.jpg';
+            const avatarUrl = (student.profile_pic && student.profile_pic !== 'default.jpg') ? `/static/img/profiles/${student.profile_pic}` : '/static/img/default_profile.jpg';
             
             card.innerHTML = `
-                <img src="${avatarUrl}" class="student-avatar" alt="Avatar" onerror="this.src='https://studio-mir.fr/wp-content/uploads/2022/04/photo-professionelle-cv-job-etudiant-1-1.jpg'">
+                <img src="${avatarUrl}" class="student-avatar" alt="Avatar" onerror="this.src='/static/img/default_profile.jpg'">
                 <div class="student-name">${student.firstname} ${student.lastname}</div>
                 <div style="font-size: 0.8rem; margin-top: 5px; color: ${isAbsent ? '#c62828' : '#2e7d32'}; font-weight: bold;">
                     ${isAbsent ? 'Absent' : 'Présent'}
@@ -121,7 +121,7 @@ let currentSchedules = [];
         try {
             const res = await fetch('/api/teacher/absences/batch', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json' , 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')},
                 body: JSON.stringify({ 
                     class_id: schedule.class_id,
                     course_id: schedule.course_id, 

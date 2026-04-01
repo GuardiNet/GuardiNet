@@ -39,7 +39,7 @@ document.getElementById('classSelect').addEventListener('change', loadHomeworks)
         try {
             const res = await fetch('/api/teacher/homeworks', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json' , 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')},
                 body: JSON.stringify({ class_id: classId, course_id: courseId, title: title, description: desc, due_date: dueDate })
             });
             const data = await res.json();

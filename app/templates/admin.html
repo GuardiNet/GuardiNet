@@ -38,6 +38,7 @@
             display: block;
         }
     </style>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <div class="admin-container">
@@ -106,6 +107,7 @@
                 <div class="admin-card">
                     <h2>Créer un nouveau compte</h2>
                     <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <!-- Sélection du rôle -->
                         <div class="form-group">
                             <label>Type de compte</label>
@@ -232,15 +234,18 @@
                                                     <button type="button" class="btn-sm" style="background-color: #3498db; color: white;" onclick='changeClass({{ user.id }}, {{ user.class_id or "null" }}, {{ (user.firstname ~ " " ~ user.lastname)|tojson|safe }})'>Classe</button>
                                                     {% endif %}
                                                     <form method="POST" action="/admin/users/reset-password/{{ user.id }}" style="display: inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                         <button type="submit" class="btn-sm" onclick="return confirm('Envoyer un mot de passe temporaire à {{ user.email }}?');">Réinitialiser</button>
                                                     </form>
                                                     <form method="POST" action="/admin/users/toggle/{{ user.id }}" style="display: inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                         <button type="submit" class="btn-sm">
                                                             {% if user.is_active %}Désactiver{% else %}Activer{% endif %}
                                                         </button>
                                                     </form>
                                                     {% if user.id != current_user.id %}
                                                         <form method="POST" action="/admin/users/delete/{{ user.id }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                             <button type="submit" class="btn-sm delete">Supprimer</button>
                                                         </form>
                                                     {% endif %}
@@ -302,6 +307,7 @@
                 <div class="admin-card">
                     <h2>Créer une nouvelle classe</h2>
                     <form method="POST" action="/admin/infrastructure">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="action" value="create_class">
                         <div class="form-group">
                             <label for="class_name">Nom de la classe</label>
@@ -316,6 +322,7 @@
                 <div class="admin-card" style="margin-top: 20px;">
                     <h2>Assigner un étudiant à une classe</h2>
                     <form method="POST" action="/admin/infrastructure">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="action" value="assign_user_class">
                         <div class="form-group">
                             <label for="student_id">Étudiant</label>
@@ -345,6 +352,7 @@
                 <div class="admin-card">
                     <h2>Créer un cours (Matière)</h2>
                     <form method="POST" action="/admin/infrastructure">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="action" value="create_course">
                         <div class="form-group">
                             <label for="course_name">Nom du cours</label>
@@ -384,6 +392,7 @@
                                         <div style="display: flex; gap: 8px; justify-content: center;">
                                             <button type="button" onclick="editCourse({{ course.id }}, {{ course.name|tojson|safe }}, {{ course.prof_id or 'null' }})" class="btn-sm" style="background-color: #f39c12; color: #fff;">Modifier</button>
                                             <form method="POST" action="/admin/infrastructure" onsubmit="return confirm('Supprimer ce cours définitivement ?')" style="margin: 0;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                 <input type="hidden" name="action" value="delete_course">
                                                 <input type="hidden" name="course_id" value="{{ course.id }}">
                                                 <button type="submit" class="btn-sm" style="background-color: #e74c3c; color: #fff;">Supprimer</button>
@@ -410,6 +419,7 @@
                         <button onclick="document.getElementById('edit-course-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
                     </div>
                     <form method="POST" action="/admin/infrastructure">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="action" value="edit_course">
                         <input type="hidden" name="course_id" id="edit_course_id">
                         <div class="form-group">
@@ -573,6 +583,7 @@
                 <div class="admin-card">
                     <h2>Créer un événement (Emploi du temps)</h2>
                     <form method="POST" action="/admin/infrastructure">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="action" value="create_schedule">
                         <div class="form-row">
                             <div class="form-group">
@@ -630,6 +641,7 @@
                         <button onclick="document.getElementById('edit-course-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
                     </div>
                     <form method="POST" action="/admin/infrastructure" style="display: flex; flex-direction: column; gap: 15px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="action" value="edit_course">
                         <input type="hidden" name="course_id" id="edit_course_id">
                         
@@ -660,6 +672,7 @@
                         <button onclick="document.getElementById('edit-schedule-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
                     </div>
                     <form method="POST" action="/admin/infrastructure">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="action" value="edit_schedule">
                         <input type="hidden" name="event_id" id="edit_event_id">
                         
@@ -713,6 +726,7 @@
                     </form>
                     
                     <form id="delete-schedule-form" method="POST" action="/admin/infrastructure" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="action" value="delete_schedule">
                         <input type="hidden" name="event_id" id="delete_event_id">
                     </form>
@@ -730,6 +744,7 @@
         </div>
         <p id="change-class-user-name" style="margin-bottom: 15px; font-weight: bold;"></p>
         <form method="POST" action="/admin/users/change-class" style="display: flex; flex-direction: column; gap: 15px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="user_id" id="change_class_user_id">
             
             <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
@@ -782,18 +797,21 @@
                                     <td>
                                         <div style="display: flex; gap: 5px;">
                                             <form method="POST" action="{{ url_for('main.admin_update_absence', absence_id=absence.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                 <input type="hidden" name="action" value="justify">
                                                 <button type="submit" class="btn-sm" style="background-color: #2ecc71; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; opacity: {% if absence.is_justified %}0.5{% else %}1{% endif %}; pointer-events: {% if absence.is_justified %}none{% else %}auto{% endif %};" title="Justifier l'absence">
                                                     Justifier
                                                 </button>
                                             </form>
                                             <form method="POST" action="{{ url_for('main.admin_update_absence', absence_id=absence.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                 <input type="hidden" name="action" value="unjustify">
                                                 <button type="submit" class="btn-sm" style="background-color: #e67e22; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; opacity: {% if not absence.is_justified %}0.5{% else %}1{% endif %}; pointer-events: {% if not absence.is_justified %}none{% else %}auto{% endif %};" title="Marquer comme injustifiée">
                                                     Injustifier
                                                 </button>
                                             </form>
                                             <form method="POST" action="{{ url_for('main.admin_update_absence', absence_id=absence.id) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer cette absence ?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                 <input type="hidden" name="action" value="delete">
                                                 <button type="submit" class="btn-sm" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;" title="Supprimer l'absence de la base de données">
                                                     Supprimer

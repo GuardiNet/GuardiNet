@@ -119,9 +119,10 @@
     <div class="profile-card">
         <h3>Photo de profil</h3>
         <div class="profile-pic-container">
-            <img src="{% if current_user.profile_pic %}{{ url_for('static', filename='img/profiles/' + current_user.profile_pic) }}{% else %}https://studio-mir.fr/wp-content/uploads/2022/04/photo-professionelle-cv-job-etudiant-1-1.jpg{% endif %}" alt="Avatar" class="profile-pic-large">
+            <img src="{% if current_user.profile_pic %}{{ url_for('static', filename=('img/profiles/' + current_user.profile_pic) if current_user.profile_pic != 'default.jpg' else 'img/default_profile.jpg') }}{% else %}{{ url_for('static', filename='img/default_profile.jpg') }}{% endif %}" alt="Avatar" class="profile-pic-large">
             
             <form action="{{ url_for('main.profile') }}" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input type="hidden" name="action" value="update_picture">
                 <div class="form-group" style="text-align: left;">
                     <label for="profile_pic">Choisir une nouvelle photo</label>
@@ -153,6 +154,7 @@
         {% endif %}
         
         <form action="{{ url_for('main.profile') }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="action" value="update_password">
             
             <div class="form-group">

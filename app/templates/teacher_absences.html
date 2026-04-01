@@ -51,5 +51,9 @@
 </div>
 
 
+
 {% endblock %}
-    <script src="{{ url_for('static', filename='js/teacher_absences.js') }}"></script>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/teacher_absences.js') }}"></script>
+{% endblock %}

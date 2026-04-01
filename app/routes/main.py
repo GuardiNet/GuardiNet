@@ -13,8 +13,8 @@ from app.models import db, User, Course, ScheduleEvent, Grade, Absence, ClassGro
 from datetime import datetime, timedelta, date
 from flask import jsonify
 
-MOIS = ["", "janvier", "fÃ©vrier", "mars", "avril", "mai", "juin",
-        "juillet", "aoÃ»t", "septembre", "octobre", "novembre", "dÃ©cembre"]
+MOIS = ["", "janvier", "février", "mars", "avril", "mai", "juin",
+        "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
 JOURS_COURTS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
 JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
 
@@ -556,7 +556,7 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or current_user.role != 'admin':
-            abort(403)  # STOP! Ce n'est pas pour toi, retourne Ã  tes devoirs bogoss
+            abort(403)  # STOP! Ce n'est pas pour toi, retourne à tes devoirs bogoss
         return f(*args, **kwargs)
     return decorated_function
 
@@ -759,7 +759,7 @@ def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
-    flash(f"L'utilisateur {user.firstname} {user.lastname} a Ã©tÃ© supprimÃ© avec succÃ¨s.", "success")
+    flash(f"L'utilisateur {user.firstname} {user.lastname} a été supprimé avec succès.", "success")
     return redirect(url_for('main.admin_users'))
 
 
@@ -777,7 +777,7 @@ def admin_infrastructure():
                 new_class = ClassGroup(name=name)
                 db.session.add(new_class)
                 db.session.commit()
-                flash(f"Classe {name} crÃ©Ã©e avec succÃ¨s.", "success")
+                flash(f"Classe {name} créée avec succès.", "success")
 
         elif action == 'assign_user_class':
             user_id = request.form.get('user_id')
@@ -787,7 +787,7 @@ def admin_infrastructure():
                 if user:
                     user.class_id = class_id
                     db.session.commit()
-                    flash("Utilisateur assignÃ© Ã  la classe.", "success")
+                    flash("Utilisateur assigné à la classe.", "success")
 
         elif action == 'create_course':
             name = request.form.get('name')
@@ -906,7 +906,7 @@ def admin_infrastructure():
                     )
                     db.session.add(new_event)
                     db.session.commit()
-                    flash("Ã‰vÃ©nement ajoutÃ© Ã  l'emploi du temps.", "success")
+                    flash("Événement ajouté à l'emploi du temps.", "success")
                 except ValueError:
                     flash("Erreur dans le format des dates.", "error")
 
@@ -1244,6 +1244,12 @@ def api_get_absences():
         return jsonify({'error': 'Unauthorized'}), 403
     class_id = request.args.get('class_id')
     course_id = request.args.get('course_id')
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
     date_str = request.args.get('date')
     if not (class_id and course_id and date_str):
         return jsonify({'error': 'Missing parameters'}), 400
@@ -1267,6 +1273,12 @@ def api_toggle_absence():
     data = request.get_json()
     student_id = data.get('student_id')
     course_id = data.get('course_id')
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
     date_str = data.get('date')
     try:
         query_date = datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -1298,6 +1310,12 @@ def api_get_grades():
         return jsonify({'error': 'Unauthorized'}), 403
     class_id = request.args.get('class_id')
     course_id = request.args.get('course_id')
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
     grades = Grade.query.join(User).filter(User.class_id == class_id, Grade.course_id == course_id).all()
     return jsonify([{'id': g.id, 'student_id': g.student_id, 'value': g.value, 'exam_name': g.exam_name, 'coefficient': g.coefficient} for g in grades])
 
@@ -1310,6 +1328,12 @@ def api_submit_grade():
     data = request.get_json()
     student_id = data.get('student_id')
     course_id = data.get('course_id')
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
     value = data.get('value')
     exam_name = data.get('exam_name', 'Contrôle continu')
     coefficient = data.get('coefficient', 1.0)
@@ -1328,6 +1352,12 @@ def api_get_homeworks():
         return jsonify({'error': 'Unauthorized'}), 403
     class_id = request.args.get('class_id')
     course_id = request.args.get('course_id')
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
     homeworks = Homework.query.filter_by(class_id=class_id, course_id=course_id).all()
     return jsonify([{'id': h.id, 'title': h.title, 'description': h.description, 'due_date': h.due_date.strftime('%Y-%m-%d %H:%M') if h.due_date else None} for h in homeworks])
 
@@ -1340,6 +1370,12 @@ def api_submit_homework():
     data = request.get_json()
     class_id = data.get('class_id')
     course_id = data.get('course_id')
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
     title = data.get('title')
     description = data.get('description')
     due_date_str = data.get('due_date')
@@ -1366,6 +1402,12 @@ def api_batch_absences():
     data = request.get_json()
     class_id = data.get('class_id')
     course_id = data.get('course_id')
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
+    from app.models import Course
+    _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
+    if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
     date_str = data.get('date')
     absent_ids = data.get('absent_ids', [])
 
