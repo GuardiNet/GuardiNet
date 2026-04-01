@@ -85,6 +85,10 @@
                                     <td>{{ user.role }}</td>
                                     <td>{{ 'Actif' if user.is_active else 'Désactivé' }}</td>
                                     <td>
+                                        <form method="post" action="{{ url_for('main.admin_force_reset_password', user_id=user.id) }}" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn-warning" style="background-color: #f39c12; color: white;" onclick="return confirm('Réinitialiser le mot de passe pour cet utilisateur ? Un email lui sera envoyé avec le nouveau mot de passe.');">Réinitialiser PWD</button>
+                                        </form>
                                         <form method="post" action="{{ url_for('main.delete_user', user_id=user.id) }}" style="display:inline;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn-danger" onclick="return confirm('Supprimer cet utilisateur ?');">Supprimer</button>

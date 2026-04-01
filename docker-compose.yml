@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: guardinet_web
+    restart: always
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - FLASK_ENV=production
+      - DB_USER=guardinet_user
+      - DB_PASSWORD=guardinet_password
+      - DB_HOST=db
+      - DB_NAME=guardinet
+      - SECRET_KEY=super_secret_devsecops_key_1234
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - guardinet_network
+
+  db:
+    image: mysql:8.0
+    container_name: guardinet_db
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password_secret
+      - MYSQL_DATABASE=guardinet
+      - MYSQL_USER=guardinet_user
+      - MYSQL_PASSWORD=guardinet_password
+    volumes:
+      - db_data:/var/lib/mysql
+      # Initialise la base avec le script SQL dès la création
+      - ./database/guardinet_init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    networks:
+      - guardinet_network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -p$$MYSQL_ROOT_PASSWORD -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  guardinet_network:
+    driver: bridge
+
+volumes:
+  db_data:

@@ -9,7 +9,7 @@ from app import mail
 from flask import current_app
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import db, User, Course, ScheduleEvent, Grade, Absence, ClassGroup, Message as ChatMessage, GroupChat, GroupChatMember, GroupMessage, Homework
+from app.models import db, User, PasswordReset, Course, ScheduleEvent, Grade, Absence, ClassGroup, Message as ChatMessage, GroupChat, GroupChatMember, GroupMessage, Homework
 from datetime import datetime, timedelta, date
 from flask import jsonify
 
@@ -748,6 +748,18 @@ def admin_tickets():
     return render_template('admin_tickets.html', active_tab='tickets')
 
 
+@main_bp.route('/admin/notes')
+@login_required
+@admin_required
+def admin_notes():
+    from app.models import ClassGroup, Course, Grade, User
+    classes = ClassGroup.query.all()
+    teachers = User.query.filter_by(role='teacher').all()
+    courses = Course.query.all()
+    return render_template('note_admin.html', active_tab='notes', classes=classes, teachers=teachers, courses=courses)
+
+
+
 @main_bp.route('/admin/delete_user/<int:user_id>', methods=['POST'])
 @login_required
 @admin_required
@@ -1433,3 +1445,102 @@ def api_batch_absences():
 
     db.session.commit()
     return jsonify({'success': True})
+
+
+import secrets
+
+@main_bp.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+        
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            token = secrets.token_urlsafe(32)
+            reset = PasswordReset(
+                user_id=user.id,
+                email=user.email,
+                token=token,
+                expires_at=datetime.utcnow() + timedelta(hours=1)
+            )
+            db.session.add(reset)
+            db.session.commit()
+            
+            reset_url = url_for('main.reset_password', token=token, _external=True)
+            
+            try:
+                from flask_mail import Message as MailMessage
+                from app import mail
+                
+                msg = MailMessage('Réinitialisation de votre mot de passe',
+                              sender=current_app.config.get('MAIL_DEFAULT_SENDER', 'noreply@guardinet.fr'),
+                              recipients=[user.email])
+                msg.html = render_template('email_forgot_password.html', user=user, reset_url=reset_url)
+                mail.send(msg)
+            except Exception as e:
+                print(f"Erreur envoi email: {e}")
+                
+        flash('Si un compte existe avec cette adresse email, un lien de réinitialisation vous a été envoyé.', 'success')
+        return redirect(url_for('main.login'))
+        
+    return render_template('forgot_password.html')
+
+@main_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+        
+    reset = PasswordReset.query.filter_by(token=token, used=False).first()
+    
+    if not reset or not reset.is_valid():
+        flash('Le lien de réinitialisation est invalide ou a expiré.', 'error')
+        return redirect(url_for('main.login'))
+        
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if password != confirm_password:
+            flash('Les mots de passe ne correspondent pas.', 'error')
+            return render_template('reset_password.html', token=token)
+            
+        user = User.query.get(reset.user_id)
+        user.set_password(password)
+        reset.used = True
+        
+        db.session.commit()
+        
+        flash('Votre mot de passe a été mis à jour avec succès.', 'success')
+        return redirect(url_for('main.login'))
+        
+    return render_template('reset_password.html', token=token)
+
+@main_bp.route('/admin/users/<int:user_id>/force-reset-password', methods=['POST'])
+@login_required
+@admin_required
+def admin_force_reset_password(user_id):
+    user = User.query.get_or_404(user_id)
+    new_password = secrets.token_urlsafe(8)
+    user.set_password(new_password)
+    user.is_password_temporary = True
+    db.session.commit()
+    
+    try:
+        from flask_mail import Message as MailMessage
+        from app import mail
+        
+        msg = MailMessage('Nouveau mot de passe',
+                      sender=current_app.config.get('MAIL_DEFAULT_SENDER', 'noreply@guardinet.fr'),
+                      recipients=[user.email])
+        login_url = url_for('main.login', _external=True)
+        msg.html = render_template('email_admin_reset_password.html', user=user, new_password=new_password, login_url=login_url)
+        mail.send(msg)
+        flash(f'Mot de passe réinitialisé pour {user.firstname} {user.lastname}. Un email lui a été envoyé.', 'success')
+    except Exception as e:
+        print(f"Erreur envoi email: {e}")
+        flash(f'Le mot de passe a été réinitialisé à : {new_password}, mais l\'email n\'a pu être envoyé.', 'error')
+        
+    return redirect(url_for('main.admin_users'))
