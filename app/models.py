@@ -24,6 +24,7 @@ class User(UserMixin, db.Model):
     profile_pic = db.Column(db.String(255), nullable=True, default='default.jpg')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_announcements_read_at = db.Column(db.DateTime, nullable=True)
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if not self.user_id:
@@ -104,11 +105,28 @@ class Absence(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    schedule_id = db.Column(db.Integer, db.ForeignKey('schedules.id'), nullable=False)
+    schedule_id = db.Column(db.Integer, db.ForeignKey('schedules.id'), nullable=True) # made nullable to allow manual absence without strictly needing a schedule event initially, or we can keep it strict. Actually I will keep it strict but add course_id for generic absence tracking if schedule isn't there
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow) # Added date for easier querying
     is_justified = db.Column(db.Boolean, default=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)
     
     student = db.relationship('User', backref='absences')
     schedule = db.relationship('ScheduleEvent', backref='absences')
+    course = db.relationship('Course', backref='absences')
+
+class Homework(db.Model):
+    __tablename__ = 'homeworks'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    due_date = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    course = db.relationship('Course', backref='homeworks')
+    class_group = db.relationship('ClassGroup', backref='homeworks')
 
 class PasswordReset(db.Model):
     __tablename__ = 'password_resets'
@@ -129,3 +147,81 @@ class PasswordReset(db.Model):
     
     def __repr__(self):
         return f'<PasswordReset {self.email}>'
+
+class Message(db.Model):
+    __tablename__ = 'messages'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    envoyeur = db.Column(db.String(12), db.ForeignKey('users.user_id'), nullable=False)
+    destinataire = db.Column(db.String(12), db.ForeignKey('users.user_id'), nullable=False)
+    heure = db.Column(db.DateTime, default=datetime.utcnow)
+    message = db.Column(db.Text, nullable=False)
+    
+    sender = db.relationship('User', foreign_keys=[envoyeur], backref='messages_sent')
+    receiver = db.relationship('User', foreign_keys=[destinataire], backref='messages_received')
+
+class GroupChat(db.Model):
+    __tablename__ = 'group_chats'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    members = db.relationship('GroupChatMember', backref='group', lazy=True, cascade="all, delete-orphan")
+    messages = db.relationship('GroupMessage', backref='group', lazy=True, cascade="all, delete-orphan")
+
+class GroupChatMember(db.Model):
+    __tablename__ = 'group_chat_members'
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('group_chats.id'), nullable=False)
+    user_id = db.Column(db.String(12), db.ForeignKey('users.user_id'), nullable=False)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', foreign_keys=[user_id])
+
+class GroupMessage(db.Model):
+    __tablename__ = 'group_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('group_chats.id'), nullable=False)
+    sender_id = db.Column(db.String(12), db.ForeignKey('users.user_id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    sender = db.relationship('User', foreign_keys=[sender_id])
+
+class SupportTicket(db.Model):
+    __tablename__ = 'support_tickets'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.String(12), db.ForeignKey('users.user_id'), nullable=False)
+    status = db.Column(db.String(20), default='open') # open, closed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', foreign_keys=[user_id], backref='tickets')
+
+class TicketMessage(db.Model):
+    __tablename__ = 'ticket_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    ticket_id = db.Column(db.Integer, db.ForeignKey('support_tickets.id'), nullable=False)
+    sender_id = db.Column(db.String(12), db.ForeignKey('users.user_id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    sender = db.relationship('User', foreign_keys=[sender_id])
+    ticket = db.relationship('SupportTicket', backref=db.backref('ticket_comments', cascade='all, delete-orphan', lazy=True))
+
+
+
+class Announcement(db.Model):
+    __tablename__ = 'announcements'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    author_id = db.Column(db.String(12), db.ForeignKey('users.user_id'), nullable=False)
+    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=True) # NULL means Global
+    title = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    author = db.relationship('User', foreign_keys=[author_id], backref='announcements_published')
+    target_class = db.relationship('ClassGroup', backref='announcements_received')

@@ -1,71 +1,595 @@
 {% extends "base.html" %}
 
-{% block title %}Chat privé{% endblock %}
+{% block title %}Chat{% endblock %}
 
 {% block content %}
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h2 class="edt-main-title" style="font-size: 4rem;">Messagerie</h2>
+<style>
+    .chat-type-button {
+        padding: 10px 15px;
+        margin: 5px;
+        background-color: #d6d6f5;
+        border: 2px solid #555;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .chat-type-button.active {
+        background-color: #c1d3c5;
+    }
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: flex;
+    }
+    .create-ticket-section {
+        background-color: #e4efe7;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+    .group-controls {
+        background-color: #e4efe7;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+</style>
+
+<div style="text-align: center; margin-bottom: 20px;">
+    <h2 class="edt-main-title" style="font-size: 4rem;">Messagerie</h2>
+</div>
+
+<!-- Onglets pour les types de chat -->
+<div style="text-align: center; margin-bottom: 20px;">
+    <button class="chat-type-button active" onclick="switchTab('private')">💬 Conversations privées</button>
+    <button class="chat-type-button" onclick="switchTab('groups')">👥 Chats groupés</button>
+    {% if current_user.role != 'admin' %}
+        <button class="chat-type-button" onclick="switchTab('tickets')">🎫 Support (tickets)</button>
+    {% endif %}
+</div>
+
+<!-- Tab: Conversations Privées -->
+<div id="private-tab" class="tab-content active chat-container">
+    <div class="chat-sidebar">
+        <div style="background-color: #c1d3c5; padding: 15px; border-bottom: 2px solid #555; font-weight: bold; text-align: center;">
+            Utilisateurs
+        </div>
+        <div id="contacts-list" style="flex-grow: 1; overflow-y: auto;">
+            <!-- Contacts loaded via JS -->
+        </div>
     </div>
 
-    <div class="chat-container">
+    <div class="chat-window">
+        <div style="background-color: #e4efe7; padding: 15px; border-bottom: 2px solid #555; font-weight: bold;">
+            <span id="private-chat-name">Aucune discussion</span>
+        </div>
         
-        <!-- Liste des contacts -->
-        <div class="chat-sidebar">
-            <div style="background-color: #c1d3c5; padding: 15px; border-bottom: 2px solid #555; font-weight: bold; text-align: center;">
-                Contacts
-            </div>
-            <div style="flex-grow: 1; overflow-y: auto;">
-                
-                <!-- Boucle Jinja prévue pour les contacts -->
-                <!-- { % for contact in contacts % } -->
-
-                <!-- Contact Actif -->
-                <div style="padding: 15px; border-bottom: 1px solid #ccc; background-color: #e4efe7; cursor: pointer;">
-                    <strong>M. Einstein</strong> <br>
-                    <span style="font-size: 0.8rem; color: #555;">En ligne</span>
-                </div>
-                <!-- Autre Contact -->
-                <div style="padding: 15px; border-bottom: 1px solid #ccc; cursor: pointer;">
-                    <strong>M. Epstein</strong> <br>
-                    <span style="font-size: 0.8rem; color: #999;">Hors ligne</span>
-                </div>
-
-            </div>
+        <div id="private-messages"
+             style="flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #fafafa;">
         </div>
 
-        <!-- Fenêtre de chat -->
-        <div class="chat-window">
-            <div style="background-color: #e4efe7; padding: 15px; border-bottom: 2px solid #555; font-weight: bold;">
-                <span id="current-chat-name">Discussion avec M. Einstein</span>
-            </div>
-            
-            <div style="flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #fafafa;">
-                
-                <!-- Boucle Jinja prévue pour les messages de la conversation active -->
-                <!-- { % for message in messages % } -->
-
-                <div style="align-self: flex-start; background-color: #d6d6f5; padding: 10px 15px; border-radius: 10px; max-width: 70%; border: 1px solid #555;">
-                    <strong style="font-size: 0.8rem; color: #333;">M. Einstein</strong><br>
-                    Bonjour, avez-vous pu vérifier l'équation que nous avons vue hier ?
-                </div>
-
-                <div style="align-self: flex-end; background-color: #c1d3c5; padding: 10px 15px; border-radius: 10px; max-width: 70%; border: 1px solid #555;">
-                    <strong style="font-size: 0.8rem; color: #333;">Vous</strong><br>
-                    Oui monsieur, j'ai préparé un script Python pour la simuler et je vous l'envoie de suite.
-                </div>
-            </div>
-
-            <!-- Zone de saisie -->
-            <div class="chat-input-area">
-                <form action="#" method="POST" style="display: flex; gap: 10px; width: 100%;">
-                    <input type="text" placeholder="Écrivez votre message..." style="flex-grow: 1; padding: 10px; border: 1px solid #555; font-family: inherit;">
-                    <button type="submit" class="chat-send-btn">
-                        <span class="send-text">Envoyer</span>
-                        <span class="send-icon">➤</span>
-                    </button>
-                </form>
-            </div>
+        <div class="chat-input-area">
+            <form onsubmit="envoyerMessagePrive(event)" style="display: flex; gap: 10px; width: 100%;">
+                <input id="privateMessageInput" type="text" placeholder="Écrivez votre message..." 
+                       style="flex-grow: 1; padding: 10px; border: 1px solid #555; font-family: inherit;">
+                <button type="submit" class="chat-send-btn">Envoyer</button>
+            </form>
         </div>
-
     </div>
+</div>
+
+<!-- Tab: Chats Groupés -->
+<div id="groups-tab" class="tab-content chat-container">
+    <div class="chat-sidebar">
+        <div style="background-color: #c1d3c5; padding: 15px; border-bottom: 2px solid #555; font-weight: bold; text-align: center;">
+            Groupes
+        </div>
+        <div class="group-controls">
+            <button onclick="afficherCreationGroupe()" class="chat-send-btn" style="width: 100%; cursor: pointer;">
+                ➕ Créer un groupe
+            </button>
+        </div>
+        <div id="groups-list" style="flex-grow: 1; overflow-y: auto;">
+        </div>
+    </div>
+
+    <div class="chat-window">
+        <div style="background-color: #e4efe7; padding: 15px; border-bottom: 2px solid #555; font-weight: bold;">
+            <span id="group-chat-name">Aucun groupe sélectionné</span>
+        </div>
+        
+        <div id="group-messages"
+             style="flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #fafafa;">
+        </div>
+
+        <div class="chat-input-area">
+            <form onsubmit="envoyerMessageGroupe(event)" style="display: flex; gap: 10px; width: 100%;">
+                <input id="groupMessageInput" type="text" placeholder="Écrivez votre message..." 
+                       style="flex-grow: 1; padding: 10px; border: 1px solid #555; font-family: inherit;">
+                <button type="submit" class="chat-send-btn">Envoyer</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Tab: Support (Tickets) -->
+{% if current_user.role != 'admin' %}
+<div id="tickets-tab" class="tab-content chat-container">
+    <div class="chat-sidebar">
+        <div style="background-color: #c1d3c5; padding: 15px; border-bottom: 2px solid #555; font-weight: bold; text-align: center;">
+            Tickets
+        </div>
+        <div class="create-ticket-section">
+            <button onclick="afficherCreationTicket()" class="chat-send-btn" style="width: 100%; cursor: pointer;">
+                ➕ Créer un ticket
+            </button>
+        </div>
+        <div id="tickets-list" style="flex-grow: 1; overflow-y: auto;">
+        </div>
+    </div>
+
+    <div class="chat-window">
+        <div style="background-color: #e4efe7; padding: 15px; border-bottom: 2px solid #555; font-weight: bold;">
+            <span id="ticket-subject">Aucun ticket sélectionné</span>
+        </div>
+        
+        <div id="ticket-messages"
+             style="flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #fafafa;">
+        </div>
+
+        <div class="chat-input-area" id="ticket-input-area">
+            <form onsubmit="envoyerMessageTicket(event)" style="display: flex; gap: 10px; width: 100%;">
+                <input id="ticketMessageInput" type="text" placeholder="Écrivez votre réponse..." 
+                       style="flex-grow: 1; padding: 10px; border: 1px solid #555; font-family: inherit;">
+                <button type="submit" class="chat-send-btn">Envoyer</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal pour créer un ticket -->
+<div id="ticket-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
+    <div style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 400px; border-radius: 5px;">
+        <span onclick="fermerTicketModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+        <h2>Créer un ticket de support</h2>
+        <input id="new-ticket-subject" type="text" placeholder="Sujet du ticket..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #555; border-radius: 3px;">
+        <textarea id="new-ticket-message" placeholder="Décrivez votre problème..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #555; border-radius: 3px; min-height: 100px; font-family: inherit;"></textarea>
+        <button onclick="creerTicket()" class="chat-send-btn" style="width: 100%; cursor: pointer; margin-top: 10px;">Créer le ticket</button>
+    </div>
+</div>
+
+<!-- Modal pour créer un groupe -->
+<div id="group-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
+    <div style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 500px; border-radius: 5px; max-height: 80vh; overflow-y: auto;">
+        <span onclick="fermerGroupModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+        <h2>Créer un chat groupé</h2>
+        <input id="group-name" type="text" placeholder="Nom du groupe..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #555; border-radius: 3px;">
+        <textarea id="group-description" placeholder="Description (optionnel)..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #555; border-radius: 3px; height: 60px; font-family: inherit;"></textarea>
+        <label style="font-weight: bold; display: block; margin-top: 15px;">Ajouter des membres :</label>
+        <div id="group-members-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+        </div>
+        <button onclick="creerGroupe()" class="chat-send-btn" style="width: 100%; cursor: pointer; margin-top: 10px;">Créer le groupe</button>
+    </div>
+</div>
+
+<script>
+let currentUser = "{{ current_user.user_id }}";
+let userRole = "{{ current_user.role }}";
+let currentTab = 'private';
+let currentChat = null;
+let currentChatName = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    chargerContacts();
+});
+
+// ============= TAB SWITCHING =============
+function switchTab(tabName) {
+    // Hide all tabs
+    if(document.getElementById('private-tab')) document.getElementById('private-tab').classList.remove('active');
+    if(document.getElementById('groups-tab')) document.getElementById('groups-tab').classList.remove('active');
+    if(document.getElementById('tickets-tab')) document.getElementById('tickets-tab').classList.remove('active');
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.chat-type-button').forEach(btn => btn.classList.remove('active'));
+    
+    // Show selected tab
+    const selectedTab = document.getElementById(tabName + '-tab');
+    if (selectedTab) selectedTab.classList.add('active');
+    event.target.classList.add('active');
+    
+    currentTab = tabName;
+    
+    if (tabName === 'private') {
+        chargerContacts();
+    } else if (tabName === 'groups') {
+        chargerGroupes();
+    } else if (tabName === 'tickets') {
+        chargerTickets();
+    }
+}
+
+// ============= CONVERSATIONS PRIVÉES =============
+async function chargerContacts() {
+    try {
+        const res = await fetch('/api/chat/contacts');
+        if (!res.ok) return;
+        const contacts = await res.json();
+        
+        const liste = document.getElementById('contacts-list');
+        liste.innerHTML = '';
+        
+        contacts.forEach(contact => {
+            const div = document.createElement('div');
+            const fullName = `${contact.firstname} ${contact.lastname}`;
+            div.onclick = () => changerConversation('private', contact.user_id, fullName);
+            div.style.padding = '15px';
+            div.style.borderBottom = '1px solid #ccc';
+            div.style.cursor = 'pointer';
+            div.innerHTML = `<strong>${fullName}</strong> <small>(${contact.role})</small>`;
+            liste.appendChild(div);
+        });
+    } catch (e) {
+        console.error("Erreur lors du chargement des contacts:", e);
+    }
+}
+
+function changerConversation(type, userId, userName) {
+    if (type === 'private') {
+        currentChat = userId;
+        currentChatName = userName;
+        document.getElementById("private-chat-name").innerText = "Discussion avec " + userName;
+        chargerMessagesPriv();
+    }
+}
+
+async function chargerMessagesPriv() {
+    if (!currentChat) return;
+
+    try {
+        const res = await fetch(`/api/chat/messages/${currentChat}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const zone = document.getElementById("private-messages");
+        zone.innerHTML = "";
+
+        data.forEach(msg => {
+            const div = document.createElement("div");
+
+            if (msg.envoyeur === currentUser) {
+                div.style.alignSelf = "flex-end";
+                div.style.backgroundColor = "#c1d3c5";
+            } else {
+                div.style.alignSelf = "flex-start";
+                div.style.backgroundColor = "#d6d6f5";
+            }
+
+            div.style.padding = "10px";
+            div.style.borderRadius = "10px";
+            div.style.maxWidth = "70%";
+
+            let timeStr = new Date(msg.heure).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            div.innerHTML = `<strong>${msg.envoyeur === currentUser ? 'Moi' : currentChatName}</strong><br>${msg.message}<br><small>${timeStr}</small>`;
+            zone.appendChild(div);
+        });
+        
+        // Auto-scroll to bottom
+        zone.scrollTop = zone.scrollHeight;
+    } catch (e) {
+        console.error("Erreur de chargement des messages:", e);
+    }
+}
+
+async function envoyerMessagePrive(e) {
+    e.preventDefault();
+    if (!currentChat) return;
+
+    const messageInput = document.getElementById("privateMessageInput");
+    const message = messageInput.value.trim();
+    if (!message) return;
+
+    try {
+        const res = await fetch("/api/chat/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                destinataire: currentChat,
+                message: message
+            })
+        });
+
+        if (res.ok) {
+            messageInput.value = "";
+            chargerMessagesPriv();
+        }
+    } catch (e) {
+        console.error("Erreur d'envoi de message:", e);
+    }
+}
+
+setInterval(() => {
+    if (currentTab === 'private' && currentChat) {
+        chargerMessagesPriv();
+    } else if (currentTab === 'groups' && currentChat) {
+        chargerMessagesGroupe();
+    } else if (currentTab === 'tickets' && currentChat) {
+        chargerTicket(currentChat);
+    }
+}, 2000);
+
+// ============= CHATS GROUPÉS =============
+async function chargerGroupes() {
+    const res = await fetch('/group-chats');
+    const groupes = await res.json();
+    
+    const liste = document.getElementById('groups-list');
+    liste.innerHTML = '';
+    
+    groupes.forEach(groupe => {
+        const div = document.createElement('div');
+        div.onclick = () => changerGroupeChat(groupe.id, groupe.name);
+        div.style.padding = '15px';
+        div.style.borderBottom = '1px solid #ccc';
+        div.style.cursor = 'pointer';
+        div.innerHTML = `<strong>${groupe.name}</strong><br><small>${groupe.members_count} membres</small>`;
+        liste.appendChild(div);
+    });
+}
+
+function changerGroupeChat(groupId, groupName) {
+    currentChat = groupId;
+    currentChatName = groupName;
+    document.getElementById('group-chat-name').innerText = groupName;
+    chargerMessagesGroupe();
+}
+
+async function chargerMessagesGroupe() {
+    if (!currentChat) return;
+
+    const res = await fetch(`/group-messages?group_chat_id=${currentChat}`);
+    const messages = await res.json();
+
+    const zone = document.getElementById("group-messages");
+    zone.innerHTML = "";
+
+    messages.forEach(msg => {
+        const div = document.createElement("div");
+
+        if (msg.sender_id === currentUser) {
+            div.style.alignSelf = "flex-end";
+            div.style.backgroundColor = "#c1d3c5";
+        } else {
+            div.style.alignSelf = "flex-start";
+            div.style.backgroundColor = "#d6d6f5";
+        }
+
+        div.style.padding = "10px";
+        div.style.borderRadius = "10px";
+        div.style.maxWidth = "70%";
+
+        div.innerHTML = `<strong>${msg.sender_name}</strong><br>${msg.message}<br><small>${msg.created_at}</small>`;
+        zone.appendChild(div);
+    });
+    
+    // Auto-scroll to bottom
+    zone.scrollTop = zone.scrollHeight;
+}
+
+async function envoyerMessageGroupe(e) {
+    e.preventDefault();
+
+    const message = document.getElementById("groupMessageInput").value;
+
+    await fetch("/send-group-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            group_chat_id: currentChat,
+            message: message
+        })
+    });
+
+    document.getElementById("groupMessageInput").value = "";
+    chargerMessagesGroupe();
+}
+
+function afficherCreationGroupe() {
+    // Charger la liste des utilisateurs disponibles via l'API
+    fetch('/api/chat/contacts')
+        .then(res => res.json())
+        .then(users => {
+            const liste = document.getElementById('group-members-list');
+            liste.innerHTML = '';
+            
+            users.forEach(user => {
+                const checkbox = document.createElement('label');
+                checkbox.style.display = 'block';
+                checkbox.style.padding = '5px';
+                checkbox.innerHTML = `<input type="checkbox" value="${user.user_id}" style="margin-right: 10px;"> ${user.firstname} ${user.lastname} <small>(${user.role})</small>`;
+                liste.appendChild(checkbox);
+            });
+        });
+    
+    document.getElementById('group-modal').style.display = 'block';
+}
+
+function fermerGroupModal() {
+    document.getElementById('group-modal').style.display = 'none';
+}
+
+async function creerGroupe() {
+    const name = document.getElementById('group-name').value;
+    const description = document.getElementById('group-description').value;
+    
+    if (!name) {
+        alert('Le nom du groupe est requis');
+        return;
+    }
+    
+    // Récupérer les membres sélectionnés
+    const checkboxes = document.querySelectorAll('#group-members-list input[type="checkbox"]:checked');
+    const members = Array.from(checkboxes).map(cb => cb.value);
+    
+    const res = await fetch('/create-group-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: name,
+            description: description,
+            members: members
+        })
+    });
+    
+    const data = await res.json();
+    if (data.status === 'ok') {
+        document.getElementById('group-modal').style.display = 'none';
+        document.getElementById('group-name').value = '';
+        document.getElementById('group-description').value = '';
+        chargerGroupes();
+        alert('Groupe créé avec succès!');
+    }
+}
+
+// ============= SUPPORT TICKETS =============
+async function chargerTickets() {
+    try {
+        const response = await fetch('/api/tickets');
+        if (!response.ok) return;
+        const tickets = await response.json();
+        const liste = document.getElementById('tickets-list');
+        liste.innerHTML = '';
+        tickets.forEach(t => {
+            const statusStyle = t.status === 'open' ? 'color: green;' : 'color: gray;';
+            const div = document.createElement('div');
+            div.style.padding = '10px';
+            div.style.borderBottom = '1px solid #ccc';
+            div.style.cursor = 'pointer';
+            div.innerHTML = `<strong style='${statusStyle}'>[${t.status}]</strong> ${t.title} <br><small>${t.user_name} - ${t.created_at}</small>`;
+            div.onclick = () => changerTicket(t.id, t.title, t.status);
+            liste.appendChild(div);
+        });
+    } catch (e) {}
+}
+
+async function changerTicket(id, title, status) {
+    currentChat = id;
+    currentChatName = title;
+    document.getElementById('ticket-subject').innerText = 'Ticket: ' + title + ' [' + status + ']';
+    
+    if (status === 'closed') {
+        document.getElementById('ticket-input-area').style.display = 'none';
+    } else {
+        document.getElementById('ticket-input-area').style.display = 'block';
+    }
+    await chargerTicketMessages(id);
+}
+
+async function chargerTicketMessages(id) {
+    try {
+        const response = await fetch(`/api/tickets/${id}/messages`);
+        const data = await response.json();
+        const messages = data.messages;
+        const chatDiv = document.getElementById('ticket-messages');
+        chatDiv.innerHTML = '';
+        
+        // Handle admin close ticket button
+        if (userRole === 'admin' && data.ticket.status === 'open') {
+            const closeBtn = document.createElement('button');
+            closeBtn.innerText = 'Fermer ce ticket';
+            closeBtn.className = 'chat-send-btn';
+            closeBtn.style.marginBottom = '15px';
+            closeBtn.style.backgroundColor = '#d9534f';
+            closeBtn.onclick = () => fermerTicketAdmin(id);
+            chatDiv.appendChild(closeBtn);
+        }
+
+        messages.forEach(msg => {
+            const div = document.createElement('div');
+            const isMe = msg.sender_id === currentUser;
+            div.style.margin = '5px 0';
+            div.style.padding = '10px';
+            div.style.borderRadius = '5px';
+            div.style.maxWidth = '75%';
+            div.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
+            div.style.backgroundColor = isMe ? '#dcf8c6' : '#fff';
+            div.style.border = '1px solid #ccc';
+            
+            div.innerHTML = `<div style='font-size: 0.8em; color: #666;'>${msg.sender_name} - ${msg.created_at}</div><div>${msg.message}</div>`;
+            chatDiv.appendChild(div);
+        });
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+    } catch (e) {}
+}
+
+async function fermerTicketAdmin(id) {
+    if (!confirm('Voulez-vous vraiment fermer ce ticket ?')) return;
+    try {
+        await fetch(`/api/tickets/${id}/close`, { method: 'POST' });
+        chargerTickets();
+        currentChat = null;
+        document.getElementById('ticket-subject').innerText = 'Aucun ticket sélectionné';
+        document.getElementById('ticket-messages').innerHTML = '';
+        document.getElementById('ticket-input-area').style.display = 'none';
+        alert('Ticket fermé !');
+    } catch (e) {}
+}
+
+async function envoyerMessageTicket(e) {
+    e.preventDefault();
+    if (!currentChat) return;
+    const messageInput = document.getElementById('ticketMessageInput');
+    const msg = messageInput.value.trim();
+    if (!msg) return;
+    
+    try {
+        await fetch(`/api/tickets/${currentChat}/messages`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: msg})
+        });
+        messageInput.value = '';
+        chargerTicketMessages(currentChat);
+    } catch (e) {}
+}
+
+function afficherCreationTicket() {
+    document.getElementById('ticket-modal').style.display = 'block';
+}
+
+function fermerTicketModal() {
+    document.getElementById('ticket-modal').style.display = 'none';
+}
+
+async function creerTicket() {
+    const subject = document.getElementById('new-ticket-subject').value;
+    const message = document.getElementById('new-ticket-message').value;
+    if (!subject || !message) {
+        alert('Sujet et message requis.');
+        return;
+    }
+    try {
+        const res = await fetch('/api/tickets', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title: subject, description: message})
+        });
+        const data = await res.json();
+        fermerTicketModal();
+        chargerTickets();
+        changerTicket(data.id, data.title, data.status);
+    } catch (e) {}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.hash === '#tickets') {
+        if(document.getElementById('tickets-tab')) {
+            switchTab('tickets');
+        }
+    }
+});
+</script>
 {% endblock %}

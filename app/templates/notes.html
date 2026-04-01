@@ -14,7 +14,7 @@
     <section class="semester-section">
       <div class="semester-banner sem1" id="banner1">
         <div class="banner-inner">
-          <span class="banner-title">Relevé de Notes — 1er Semestre</span>
+          <span class="banner-title">Relevé de Notes</span>
           <div class="banner-arrow">
             <svg width="14" height="9" viewBox="0 0 14 9" fill="none"
                  stroke="#2d3748" stroke-width="2.2" stroke-linecap="round">
@@ -25,24 +25,12 @@
       </div>
       <div class="semester-cards" id="cards1"></div>
     </section>
-
-    <section class="semester-section">
-      <div class="semester-banner sem2" id="banner2">
-        <div class="banner-inner">
-          <span class="banner-title">Relevé de Notes — 2ème Semestre</span>
-          <div class="banner-arrow">
-            <svg width="14" height="9" viewBox="0 0 14 9" fill="none"
-                 stroke="#2d3748" stroke-width="2.2" stroke-linecap="round">
-              <path d="M1 1l6 6 6-6"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-      <div class="semester-cards" id="cards2"></div>
-    </section>
   </div>
 {% endblock %}
 
 {% block extra_js %}
+  <script>
+    const studentGradesData = {{ grades_data | tojson | safe }};
+  </script>
   <script src="{{ url_for('static', filename='js/notes.js') }}"></script>
 {% endblock %}

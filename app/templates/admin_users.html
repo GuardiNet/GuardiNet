@@ -22,6 +22,15 @@
                 <a href="/admin/users" class="admin-nav-item active">
                     Gérer les comptes
                 </a>
+                <a href="/admin/tickets" class="admin-nav-item">
+                    Gestion des tickets
+                </a>
+                <a href="/dashboard" class="admin-nav-item">
+                    Tableau de bord
+                </a>
+                <a href="/logout" class="admin-nav-item">
+                    Déconnexion
+                </a>
             </nav>
         </aside>
 
@@ -95,16 +104,7 @@
         </main>
     </div>
 
-    <script>
-        // Placeholder pour une future intégration avec la base de données
-        // Les utilisateurs seront chargés dynamiquement
-        document.getElementById('search').addEventListener('input', function(e) {
-            // Logique de recherche
-        });
-
-        document.getElementById('role-filter').addEventListener('change', function(e) {
-            // Logique de filtrage par rôle
-        });
-    </script>
+    
+    <script src="{{ url_for('static', filename='js/admin_users.js') }}"></script>
 </body>
 </html>

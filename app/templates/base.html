@@ -12,8 +12,8 @@
         <!-- Barre latérale -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-inner">
-                <div class="brand-logo" style="margin-top: 15px;">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="GuardiNet Logo" style="max-width: 80%; height: auto; display: block; margin: 0 auto;">
+                <div class="brand-logo" style="margin-top: 15px; min-height: 106px;">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="GuardiNet Logo" style="max-width: 80%; width: 160px; height: 106px; object-fit: contain; display: block; margin: 0 auto;">
                 </div>
 
                 <div class="profile-section" style="cursor: pointer;" onclick="window.location.href='{{ url_for('main.profile') }}'">
@@ -46,7 +46,9 @@
                         <li>
                             <a href="{{ url_for('main.annonces') }}" class="nav-item">
                                 <span class="icon">★</span> Annonces
-                                <span class="badge">{{ nb_annonces|default(1) }}</span>
+                                {% if unread_announcements_count > 0 %}
+                                <span class="badge">{{ unread_announcements_count }}</span>
+                                {% endif %}
                                 {% if active_page == 'annonces' %}<div class="active-tab-indicator"></div>{% endif %}
                             </a>
                         </li>
@@ -73,7 +75,17 @@
 
                 <div class="announcement-box">
                     <div class="announcement-header">Dernière annonce</div>
-                    <div class="announcement-content"></div>
+                    <div class="announcement-content" style="padding: 10px; text-align: left;">
+                        {% if latest_announcement %}
+                            <strong style="color: #333; font-size: 0.9em; display: block; margin-bottom: 5px;">{{ latest_announcement.title }}</strong>
+                            <p style="color: #666; font-size: 0.8em; margin: 0 0 10px 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2;">
+                                {{ latest_announcement.content[:80] + '...' if latest_announcement.content|length > 80 else latest_announcement.content }}
+                            </p>
+                            <a href="{{ url_for('main.annonces') }}" style="display: block; background-color: #a5bba9; padding: 6px; border-radius: 4px; font-size: 0.85em; color: white; text-decoration: none; text-align: center; font-weight: bold; width: 100%; box-sizing: border-box; transition: background-color 0.2s;">Voir plus &rarr;</a>
+                        {% else %}
+                            <span style="font-size: 0.85em; color: #777;">Aucune annonce pour le moment.</span>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <a href="{{ url_for('main.logout') }}" class="logout-btn">Déconnexion</a>
@@ -94,29 +106,7 @@
 
     {% block extra_js %}{% endblock %}
     
-    <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const toggleIcon = document.getElementById('toggle-icon');
-            
-            if (sidebar.classList.contains('collapsed')) {
-                sidebar.classList.remove('collapsed');
-                toggleIcon.innerText = '⬅';
-            } else {
-                sidebar.classList.add('collapsed');
-                toggleIcon.innerText = '➡';
-            }
-        }
-
-        // Sur mobile, on rétracte par défaut au chargement
-        window.addEventListener('DOMContentLoaded', () => {
-            if (window.innerWidth <= 768) {
-                const sidebar = document.getElementById('sidebar');
-                const toggleIcon = document.getElementById('toggle-icon');
-                sidebar.classList.add('collapsed');
-                toggleIcon.innerText = '➡';
-            }
-        });
-    </script>
+    
+    <script src="{{ url_for('static', filename='js/base.js') }}"></script>
 </body>
 </html>

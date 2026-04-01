@@ -1,0 +1,72 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Devoirs - Professeur{% endblock %}
+
+{% block extra_css %}
+<style>
+    .teacher-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .form-box { background: white; padding: 20px; border: 2px solid #555; box-shadow: 4px 4px 0 #555; margin-bottom: 20px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
+    .btn-submit { padding: 10px 20px; background: #ebd1ea; border: 2px solid #555; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; }
+    .btn-submit:hover { background: #d3b4d1; }
+    
+    .hw-card { background: white; border-bottom: 1px solid #ddd; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #ebd1ea; }
+    .hw-card:last-child { margin-bottom: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="teacher-container">
+    <h2 class="edt-main-title" style="font-size: 3rem; text-align: center; margin-bottom: 30px;">Gestion des Devoirs</h2>
+    
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div class="form-box" style="flex: 1; min-width: 300px;">
+            <h3>Ajouter un Devoir</h3>
+            <div class="form-group">
+                <label>Classe</label>
+                <select id="classSelect" onchange="loadHomeworks()">
+                    <option value="">-- Choisir --</option>
+                    {% for c in classes %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Matière</label>
+                <select id="courseSelect" onchange="loadHomeworks()">
+                    <option value="">-- Choisir --</option>
+                    {% for course in courses %}
+                        <option value="{{ course.id }}">{{ course.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Titre / Consigne rapide</label>
+                <input type="text" id="hwTitle" placeholder="Ex: Exercices 1 à 3 page 45">
+            </div>
+            <div class="form-group">
+                <label>Description détaillée (Optionnel)</label>
+                <textarea id="hwDesc" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>À rendre pour le</label>
+                <input type="datetime-local" id="hwDueDate">
+            </div>
+            <button class="btn-submit" onclick="addHomework()">Ajouter le devoir</button>
+        </div>
+
+        <div class="form-box" style="flex: 1; min-width: 300px;">
+            <h3>Derniers devoirs donnés</h3>
+            <div id="hwList">
+                <p style="color: #666; font-style: italic;">Sélectionnez une classe et une matière pour voir les devoirs.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+    <script src="{{ url_for('static', filename='js/teacher_homeworks.js') }}"></script>

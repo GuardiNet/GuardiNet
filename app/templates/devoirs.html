@@ -10,7 +10,7 @@
     <!-- Boucle Jinja prévue pour les devoirs du backend -->
     <!-- { % for devoir in devoirs % } -->
     
-    <div style="max-width: 1000px; margin: 0 auto; background-color: white; border: 2px solid #555; box-shadow: 4px 4px 0 #555;">
+    <div style="max-width: 1000px; margin: 0 auto; background-color: white; border: 2px solid #555; box-shadow: 4px 4px 0 #555; overflow-x: auto; width: 100%;">
         <table style="width: 100%; border-collapse: collapse; text-align: left;">
             <thead>
                 <tr style="background-color: #c1d3c5; border-bottom: 2px solid #555;">
@@ -21,19 +21,21 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Remplacer les TR par une boucle jinja plus tard -->
+                {% for devoir in homeworks %}
                 <tr style="border-bottom: 1px solid #555;">
-                    <td style="padding: 15px; border-right: 1px solid #555; font-weight: bold;">Réseaux & Protocoles</td>
-                    <td style="padding: 15px; border-right: 1px solid #555;">Capture Wireshark (TP1)</td>
-                    <td style="padding: 15px; border-right: 1px solid #555;">28 Octobre 2026</td>
-                    <td style="padding: 15px; color: #d9534f; font-weight: bold;">À rendre</td>
+                    <td style="padding: 15px; border-right: 1px solid #555; font-weight: bold;">{{ devoir.course.name if devoir.course else 'Classe' }}</td>
+                    <td style="padding: 15px; border-right: 1px solid #555;">
+                        {{ devoir.title }}
+                        {% if devoir.description %}
+                            <br><small style="color: #666;">{{ devoir.description }}</small>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px; border-right: 1px solid #555;">{{ devoir.due_date.strftime('%d/%m/%Y') }}</td>
+                    <td style="padding: 15px; font-weight: bold;">A rendre</td>
                 </tr>
-                <tr>
-                    <td style="padding: 15px; border-right: 1px solid #555; font-weight: bold;">Cybersécurité Web</td>
-                    <td style="padding: 15px; border-right: 1px solid #555;">Rapport d'audit XSS</td>
-                    <td style="padding: 15px; border-right: 1px solid #555;">02 Novembre 2026</td>
-                    <td style="padding: 15px; color: #5cb85c; font-weight: bold;">Terminé</td>
-                </tr>
+                {% else %}
+                <tr><td colspan="4" style="padding: 15px; text-align: center;">Aucun devoir</td></tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>

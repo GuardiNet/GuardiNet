@@ -264,3 +264,84 @@ body, html {
     transform: translate(2px, 2px);
     box-shadow: 0px 0px 0 var(--border-dark);
 }
+
+
+/* RESPONSIVE DESIGN FOR MOBILE */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        padding: 15px 20px;
+        gap: 15px;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+    }
+
+    .logo img {
+        height: 50px;
+    }
+
+    nav {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .btn-link {
+        margin-right: 0;
+    }
+
+    .btn-login-outline {
+        width: 100%;
+    }
+
+    .hero {
+        padding: 30px 20px;
+    }
+
+    .hero-content {
+        padding: 30px 20px;
+        box-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+    }
+
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+
+    .features {
+        padding: 40px 20px;
+    }
+
+    .features-title {
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+}

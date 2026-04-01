@@ -13,7 +13,7 @@
         (dont <span style="color: #c62828; font-weight: bold;">{{ non_justified_hours }} heure{% if non_justified_hours > 1 %}s{% endif %} non justifiée{% if non_justified_hours > 1 %}s{% endif %}</span>)
     </div>
     
-    <div style="max-width: 1000px; margin: 0 auto; background-color: white; border: 2px solid #555; box-shadow: 4px 4px 0 #555;">
+    <div style="max-width: 1000px; margin: 0 auto; background-color: white; border: 2px solid #555; box-shadow: 4px 4px 0 #555; overflow-x: auto; width: 100%;">
         <table style="width: 100%; border-collapse: collapse; text-align: left;">
             <thead>
                 <tr style="background-color: #c1d3c5; border-bottom: 2px solid #555;">
@@ -26,19 +26,30 @@
             <tbody>
                 {% if absences %}
                     {% for absence in absences %}
-                        {% set duration_hours = ((absence.schedule.end_time - absence.schedule.start_time).total_seconds() / 3600) | float %}
+                        {% if absence.schedule %}
+                            {% set duration_hours = ((absence.schedule.end_time - absence.schedule.start_time).total_seconds() / 3600) | float %}
+                            {% set course_name = absence.schedule.course.name %}
+                            {% set display_date = absence.schedule.start_time.strftime('%Y-%m-%d') %}
+                            {% set display_time = absence.schedule.start_time.strftime('%Hh%M') ~ ' - ' ~ absence.schedule.end_time.strftime('%Hh%M') %}
+                        {% else %}
+                            {% set duration_hours = 2.0 %}
+                            {% set course_name = absence.course.name if absence.course else 'Matière / Cours' %}
+                            {% set display_date = absence.date.strftime('%Y-%m-%d') %}
+                            {% set display_time = 'Non spécifié' %}
+                        {% endif %}
+                        
                         {% set is_integer = (duration_hours % 1 == 0) %}
                         {% set formatted_duration = (duration_hours | int) if is_integer else duration_hours | round(1) %}
                         
                         <tr style="border-bottom: 1px solid #ddd; {% if loop.index % 2 == 0 %}background-color: #fafafa;{% endif %}">
                             <td style="padding: 15px; border-right: 1px solid #eee; font-weight: bold;">
-                                {{ absence.schedule.start_time.strftime('%A %d %B %Y').capitalize() }}<br>
+                                {{ display_date }}<br>
                                 <span style="font-size: 0.85em; font-weight: normal; color: #666;">
-                                    {{ absence.schedule.start_time.strftime('%Hh%M') }} - {{ absence.schedule.end_time.strftime('%Hh%M') }}
+                                    {{ display_time }}
                                 </span>
                             </td>
                             <td style="padding: 15px; border-right: 1px solid #eee;">
-                                {{ absence.schedule.course.name }}
+                                {{ course_name }}
                             </td>
                             <td style="padding: 15px; border-right: 1px solid #eee;">
                                 {{ formatted_duration }}h

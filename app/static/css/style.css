@@ -632,7 +632,9 @@ body, html {
         min-width: 85%;
         max-width: 85%;
         position: fixed;
-        left: -100%;
+        left: 0;
+        transform: translateX(0);
+        transition: transform 0.3s ease;
         height: 100vh;
         z-index: 1000;
         box-sizing: border-box;
@@ -641,8 +643,9 @@ body, html {
     }
 
     .sidebar.collapsed {
-        margin-left: -85%;
+        transform: translateX(-100%);
         box-shadow: none;
+        margin-left: 0;
     }
 
     .sidebar-inner {
@@ -650,10 +653,46 @@ body, html {
     }
 
     .sidebar-toggle {
-        right: -30px;
+        right: -25px;
         background-color: var(--sidebar-bg);
         box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
     }
+
+    /* Adjust main content for smaller screens */
+    .main-content {
+        padding: 15px;
+        width: 100vw;
+        overflow-x: hidden;
+    }
+    
+    /* Make typography adapt */
+    h2, h3, h4 {
+        font-size: 1.2rem;
+    }
+    
+    .edt-main-title {
+        font-size: 1.8rem !important;
+        margin-top: 40px !important; /* give space for hamburger toggle on the left */
+    }
+    
+    .users-table th, .users-table td {
+        padding: 8px 4px !important;
+        font-size: 0.8rem;
+    }
+    
+    .student-card {
+        padding: 10px !important;
+    }
+    
+    .filters {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .filters > * {
+        width: 100% !important;
+    }
+
 
     .main-content {
         padding: 15px;

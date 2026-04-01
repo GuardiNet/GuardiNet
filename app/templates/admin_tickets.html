@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuardiNet - Administration - Gestion des Tickets</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <!-- Ajouter les styles de chat -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .admin-main .chat-container {
+            width: 100%;
+            height: calc(100vh - 150px);
+            max-height: none;
+            box-shadow: none;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            background-color: white;
+        }
+        .chat-sidebar {
+            width: 300px;
+            border-right: 2px solid #555;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-window {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #fafafa;
+        }
+        .chat-send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .chat-send-btn:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Barre latérale d'administration -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <span> GuardiNet</span>
+            </div>
+            <div style="flex-grow: 1;">
+                <h2>Administration</h2>
+                <div style="padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                    <small style="color: var(--text-color);">Connecté en tant que:</small>
+                    <p style="margin: 5px 0 0 0; font-weight: 600;">{{ current_user.get_full_name() }}</p>
+                </div>
+            </div>
+            <nav class="admin-nav">
+                <a href="/dashboard" class="admin-nav-item">
+                    Tableau de bord
+                </a>
+                <a href="/admin/tickets" class="admin-nav-item active">
+                    Gestion des tickets
+                </a>
+                <a href="/logout" class="admin-nav-item">
+                    Déconnexion
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Contenu principal -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1>Gestion des tickets de support</h1>
+            </div>
+
+            <!-- Interface des tickets de chat -->
+            <div class="chat-container">
+                <div class="chat-sidebar">
+                    <div style="background-color: #c1d3c5; padding: 15px; border-bottom: 2px solid #555; font-weight: bold; text-align: center;">
+                        Tickets Ouverts
+                    </div>
+                    <div id="tickets-list" style="flex-grow: 1; overflow-y: auto;">
+                        <!-- Les tickets seront chargés ici -->
+                    </div>
+                </div>
+
+                <div class="chat-window">
+                    <div style="background-color: #e4efe7; padding: 15px; border-bottom: 2px solid #555; font-weight: bold;">
+                        <span id="ticket-subject">Aucun ticket sélectionné</span>
+                    </div>
+                    
+                    <div id="ticket-messages"
+                         style="flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #fafafa;">
+                    </div>
+
+                    <div class="chat-input-area" id="ticket-input-area" style="display: none; padding: 15px; border-top: 1px solid #ccc; background-color: white;">
+                        <form onsubmit="envoyerMessageTicket(event)" style="display: flex; gap: 10px; width: 100%;">
+                            <input id="ticketMessageInput" type="text" placeholder="Écrivez votre réponse..." 
+                                   style="flex-grow: 1; padding: 10px; border: 1px solid #555; font-family: inherit; border-radius: 4px;">
+                            <button type="submit" class="chat-send-btn">Envoyer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentUser = "{{ current_user.user_id }}";
+        let userRole = "{{ current_user.role }}";
+        let currentChat = null;
+        let currentChatName = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            chargerTickets();
+        });
+
+        // ============= SUPPORT TICKETS (ADMIN) =============
+        async function chargerTickets() {
+            try {
+                const response = await fetch('/api/tickets');
+                if (!response.ok) return;
+                const tickets = await response.json();
+                const liste = document.getElementById('tickets-list');
+                liste.innerHTML = '';
+                
+                // Mettre les tickets ouverts en premier
+                tickets.sort((a, b) => {
+                    if (a.status === 'open' && b.status !== 'open') return -1;
+                    if (a.status !== 'open' && b.status === 'open') return 1;
+                    return new Date(b.created_at) - new Date(a.created_at);
+                });
+
+                tickets.forEach(t => {
+                    const statusStyle = t.status === 'open' ? 'color: green;' : 'color: gray;';
+                    const div = document.createElement('div');
+                    div.style.padding = '15px';
+                    div.style.borderBottom = '1px solid #ccc';
+                    div.style.cursor = 'pointer';
+                    div.innerHTML = `<strong style='${statusStyle}'>[${t.status === 'open' ? 'Ouvert' : 'Fermé'}]</strong> ${t.title} <br><small style="color: #666; display: block; margin-top: 5px;">De: ${t.user_name} - ${t.created_at}</small>`;
+                    
+                    div.onclick = () => changerTicket(t.id, t.title, t.status);
+                    
+                    // Highlight active
+                    if (currentChat === t.id) {
+                        div.style.backgroundColor = '#eaeaea';
+                    }
+                    
+                    liste.appendChild(div);
+                });
+            } catch (e) {
+                console.error("Erreur de chargement des tickets", e);
+            }
+        }
+
+        async function changerTicket(id, title, status) {
+            currentChat = id;
+            currentChatName = title;
+            document.getElementById('ticket-subject').innerText = 'Ticket: ' + title + ' [' + (status === 'open' ? 'Ouvert' : 'Fermé') + ']';
+            
+            if (status === 'closed') {
+                document.getElementById('ticket-input-area').style.display = 'none';
+            } else {
+                document.getElementById('ticket-input-area').style.display = 'block';
+            }
+            
+            // Re-render list for active state
+            chargerTickets();
+            await chargerTicketMessages(id);
+        }
+
+        async function chargerTicketMessages(id) {
+            try {
+                const response = await fetch(`/api/tickets/${id}/messages`);
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                const messages = data.messages;
+                const chatDiv = document.getElementById('ticket-messages');
+                chatDiv.innerHTML = '';
+                
+                if (userRole === 'admin' && data.ticket.status === 'open') {
+                    const closeBtn = document.createElement('button');
+                    closeBtn.innerText = 'Fermer ce ticket';
+                    closeBtn.className = 'chat-send-btn';
+                    closeBtn.style.marginBottom = '15px';
+                    closeBtn.style.alignSelf = 'center';
+                    closeBtn.style.backgroundColor = '#d9534f';
+                    closeBtn.onclick = () => fermerTicketAdmin(id);
+                    chatDiv.appendChild(closeBtn);
+                }
+
+                messages.forEach(msg => {
+                    const div = document.createElement('div');
+                    const isMe = msg.sender_id === currentUser;
+                    div.style.margin = '5px 0';
+                    div.style.padding = '10px 15px';
+                    div.style.borderRadius = '8px';
+                    div.style.maxWidth = '75%';
+                    div.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
+                    div.style.backgroundColor = isMe ? '#dcf8c6' : '#fff';
+                    div.style.border = '1px solid #ddd';
+                    div.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
+                    
+                    div.innerHTML = `<div style='font-size: 0.8em; color: #666; margin-bottom: 5px; font-weight: bold;'>${isMe ? 'Moi' : msg.sender_name} - ${msg.created_at}</div><div>${msg.message.replace(/\n/g, '<br>')}</div>`;
+                    chatDiv.appendChild(div);
+                });
+                chatDiv.scrollTop = chatDiv.scrollHeight;
+            } catch (e) {
+                console.error("Erreur de chargement des messages de ticket", e);
+            }
+        }
+
+        async function fermerTicketAdmin(id) {
+            if (!confirm('Voulez-vous vraiment fermer ce ticket ?')) return;
+            try {
+                await fetch(`/api/tickets/${id}/close`, { method: 'POST' });
+                await chargerTickets();
+                if (currentChat === id) {
+                    currentChat = null;
+                    document.getElementById('ticket-subject').innerText = 'Aucun ticket sélectionné';
+                    document.getElementById('ticket-messages').innerHTML = '';
+                    document.getElementById('ticket-input-area').style.display = 'none';
+                }
+                alert('Ticket fermé avec succès !');
+            } catch (e) {
+                console.error("Erreur de fermeture de ticket", e);
+            }
+        }
+
+        async function envoyerMessageTicket(e) {
+            e.preventDefault();
+            if (!currentChat) return;
+            const messageInput = document.getElementById('ticketMessageInput');
+            const msg = messageInput.value.trim();
+            if (!msg) return;
+            
+            try {
+                const res = await fetch(`/api/tickets/${currentChat}/messages`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: msg})
+                });
+                if (res.ok) {
+                    messageInput.value = '';
+                    await chargerTicketMessages(currentChat);
+                }
+            } catch (e) {
+                console.error("Erreur d'envoi de message", e);
+            }
+        }
+
+        // Rafraîchissement automatique
+        setInterval(() => {
+            if (currentChat) {
+                chargerTicketMessages(currentChat);
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

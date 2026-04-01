@@ -1,22 +1,97 @@
 ﻿import random
 import string
-from flask_mail import Message
-from app import mail
-from flask import current_app
-import string
-from flask_mail import Message
+import os
+from werkzeug.utils import secure_filename
+from flask_mail import Message as MailMessage
 from app import mail
 from flask import current_app
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import db, User, Course, ScheduleEvent, Grade, Absence, ClassGroup, bcrypt
+from app.models import db, User, Course, ScheduleEvent, Grade, Absence, ClassGroup, bcrypt, Message as ChatMessage, GroupChat, GroupChatMember, GroupMessage, Homework
 from datetime import datetime, timedelta, date
+from flask import jsonify
 
 MOIS = ["", "janvier", "fÃ©vrier", "mars", "avril", "mai", "juin", "juillet", "aoÃ»t", "septembre", "octobre", "novembre", "dÃ©cembre"]
 JOURS_COURTS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
 JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
 
 main_bp = Blueprint('main', __name__)
+
+@main_bp.app_context_processor
+def inject_unread_announcements():
+    from flask_login import current_user
+    from app.models import Announcement, Course, ScheduleEvent, db
+    unread_count = 0
+    latest_ann = None
+    if current_user.is_authenticated:
+        base_query = Announcement.query
+        last_read = current_user.last_announcements_read_at
+        
+        query = base_query
+        if last_read:
+            query = query.filter(Announcement.created_at > last_read)
+            
+        if current_user.role == 'admin':
+            unread_count = query.count()
+            latest_ann = base_query.order_by(Announcement.created_at.desc()).first()
+        elif current_user.role == 'teacher':
+            courses = Course.query.filter_by(prof_id=current_user.id).all()
+            class_ids = set()
+            for c in courses:
+                scheds = db.session.query(ScheduleEvent.class_id).filter_by(course_id=c.id).distinct().all()
+                for s in scheds:
+                    class_ids.add(s[0])
+            class_ids = list(class_ids)
+            
+            condition = (Announcement.class_id == None) | (Announcement.class_id.in_(class_ids)) | (Announcement.author_id == current_user.user_id)
+            unread_count = query.filter(condition).count()
+            latest_ann = base_query.filter(condition).order_by(Announcement.created_at.desc()).first()
+        else:
+            condition = (Announcement.class_id == None) | (Announcement.class_id == current_user.class_id)
+            unread_count = query.filter(condition).count()
+            latest_ann = base_query.filter(condition).order_by(Announcement.created_at.desc()).first()
+            
+    return dict(unread_announcements_count=unread_count, latest_announcement=latest_ann)
+
+@main_bp.before_request
+def require_password_change():
+    from flask_login import current_user
+    from flask import request, redirect, url_for
+    if current_user.is_authenticated:
+        allowed_endpoints = ['main.force_change_password', 'main.logout', 'static']
+        # We ensure request.endpoint isn't starting with static as well just in case flask static gets weird
+        if current_user.is_password_temporary and hasattr(request, 'endpoint') and request.endpoint and request.endpoint not in allowed_endpoints and not request.endpoint.startswith('static'):
+            return redirect(url_for('main.force_change_password'))
+
+@main_bp.route('/force-change-password', methods=['GET', 'POST'])
+@login_required
+def force_change_password():
+    if not current_user.is_password_temporary:
+        return redirect(url_for('main.dashboard'))
+        
+    if request.method == 'POST':
+        new_password = request.form.get('new_password')
+        new_password_confirm = request.form.get('new_password_confirm')
+        
+        if not new_password or not new_password_confirm:
+            flash("Veuillez remplir tous les champs.", "error")
+        elif new_password != new_password_confirm:
+            flash("Les mots de passe ne correspondent pas.", "error")
+        elif len(new_password) < 6:
+            flash("Le mot de passe doit contenir au moins 6 caractères.", "error")
+        else:
+            current_user.set_password(new_password)
+            current_user.is_password_temporary = False
+            db.session.commit()
+            flash("Votre mot de passe a été mis à jour. Bienvenue !", "success")
+            if current_user.role == 'admin':
+                return redirect(url_for('main.admin_panel'))
+            return redirect(url_for('main.dashboard'))
+            
+    return render_template('change_password.html')
+
+
+
 
 @main_bp.route('/')
 def index():
@@ -58,8 +133,7 @@ def dashboard():
     # Redirections basées sur le rôle
     if current_user.role == 'admin':
         return redirect(url_for('main.admin_panel'))
-    elif current_user.role == 'teacher':
-        return redirect(url_for('main.teacher_panel'))
+    
 
     view = request.args.get('view', 'hebdo')
     date_str = request.args.get('date')
@@ -104,6 +178,14 @@ def dashboard():
             ScheduleEvent.start_time >= start_dt,
             ScheduleEvent.start_time <= end_dt
         ).all()
+    elif current_user.role == 'teacher':
+        course_ids = [c.id for c in current_user.courses_taught]
+        if course_ids:
+            schedules = ScheduleEvent.query.filter(
+                ScheduleEvent.course_id.in_(course_ids),
+                ScheduleEvent.start_time >= start_dt,
+                ScheduleEvent.start_time <= end_dt
+            ).all()
 
     schedule_days_dict = {d: [] for d in days_to_show}
 
@@ -117,20 +199,17 @@ def dashboard():
             top_px = (start_hour - 6) * 60 + start_min
 
             time_str = f"{event.start_time.strftime('%H:%M')} - {event.end_time.strftime('%H:%M')}"
-            
 
             colors = ["event-blue", "event-green", "event-red", "event-yellow", "event-purple", "event-orange"]
             color_idx = event.course_id % len(colors) if event.course_id else 0
             color_class = colors[color_idx]
             
-
-            colors = ["event-blue", "event-green", "event-red", "event-yellow", "event-purple", "event-orange"]
-            color_idx = event.course_id % len(colors) if event.course_id else 0
-            color_class = colors[color_idx]
-            
-            teacher_name = "Inconnu"
-            if event.course and event.course.prof:
-                teacher_name = f"{event.course.prof.firstname} {event.course.prof.lastname}"
+            if current_user.role == 'teacher':
+                teacher_name = event.class_group.name if event.class_group else "Classe"
+            else:
+                teacher_name = "Inconnu"
+                if event.course and event.course.prof:
+                    teacher_name = f"{event.course.prof.firstname} {event.course.prof.lastname}"
             
             title = event.course.name if event.course else "Cours"
             if event.event_type:
@@ -171,26 +250,67 @@ def dashboard():
 @main_bp.route('/notes')
 @login_required
 def notes():
-    # Notes depuis BDD
-    grades = []
+    if current_user.role == 'teacher':
+        courses = Course.query.filter_by(prof_id=current_user.id).all()
+        # Get schedules to find which classes they teach for API
+        schedules = ScheduleEvent.query.filter(ScheduleEvent.course_id.in_([c.id for c in courses])).all()
+        class_ids = list(set([s.class_id for s in schedules]))
+        classes = ClassGroup.query.filter(ClassGroup.id.in_(class_ids)).all()
+        return render_template('teacher_grades.html', active_page='notes', courses=courses, classes=classes)
+
+    final_data = []
     if current_user.role == 'student':
         grades = Grade.query.filter_by(student_id=current_user.id).all()
-    return render_template('notes.html', active_page='notes', grades=grades)
+        courses_data = {}
+        for g in grades:
+            c_name = g.course.name if g.course else "Autre"
+            if c_name not in courses_data:
+                courses_data[c_name] = {'name': c_name, 'details': [], 'sum_notes': 0, 'sum_coeffs': 0}
+            
+            courses_data[c_name]['details'].append({
+                'label': g.exam_name or 'Contrôle continu',
+                'note': g.value,
+                'coeff': g.coefficient or 1.0
+            })
+            courses_data[c_name]['sum_notes'] += g.value * (g.coefficient or 1.0)
+            courses_data[c_name]['sum_coeffs'] += (g.coefficient or 1.0)
+        
+        for c in courses_data.values():
+            avg = round(c['sum_notes'] / c['sum_coeffs'], 2) if c['sum_coeffs'] > 0 else 0
+            final_data.append({
+                'name': c['name'],
+                'avg': avg,
+                'details': c['details']
+            })
+            
+    return render_template('notes.html', active_page='notes', grades_data=final_data)
 
 @main_bp.route('/absences')
 @login_required
 def absences():
+    if current_user.role == 'teacher':
+        courses = Course.query.filter_by(prof_id=current_user.id).all()
+        course_ids = [c.id for c in courses]
+        from sqlalchemy import func
+        # Find classes the teacher teaches
+        schedules = ScheduleEvent.query.filter(ScheduleEvent.course_id.in_(course_ids)).all()
+        class_ids = list(set([s.class_id for s in schedules]))
+        classes = ClassGroup.query.filter(ClassGroup.id.in_(class_ids)).all()
+        return render_template('teacher_absences.html', active_page='absences', classes=classes, courses=courses)
+
     absences_list = []
     total_hours = 0
     non_justified_hours = 0
 
     if current_user.role == 'student':
-        # Get absences and sort by schedule start_time descending
-        absences_list = Absence.query.join(ScheduleEvent).filter(Absence.student_id == current_user.id).order_by(ScheduleEvent.start_time.desc()).all()
+        absences_list = Absence.query.filter(Absence.student_id == current_user.id).order_by(Absence.date.desc()).all()
         
         for absence in absences_list:
-            # Calculate duration in hours
-            duration = (absence.schedule.end_time - absence.schedule.start_time).total_seconds() / 3600
+            if absence.schedule:
+                duration = (absence.schedule.end_time - absence.schedule.start_time).total_seconds() / 3600
+            else:
+                duration = 2.0
+            
             total_hours += duration
             if not absence.is_justified:
                 non_justified_hours += duration
@@ -204,24 +324,210 @@ def absences():
 @main_bp.route('/devoirs')
 @login_required
 def devoirs():
-    return render_template('devoirs.html', active_page='devoirs')
+    if current_user.role == 'teacher':
+        courses = Course.query.filter_by(prof_id=current_user.id).all()
+        schedules = ScheduleEvent.query.filter(ScheduleEvent.course_id.in_([c.id for c in courses])).all()
+        class_ids = list(set([s.class_id for s in schedules]))
+        classes = ClassGroup.query.filter(ClassGroup.id.in_(class_ids)).all()
+        return render_template('teacher_homeworks.html', active_page='devoirs', classes=classes, courses=courses)
 
-@main_bp.route('/annonces')
+    homeworks = []
+    if current_user.role == 'student' and current_user.class_id:
+        homeworks = Homework.query.filter_by(class_id=current_user.class_id).order_by(Homework.due_date.asc()).all()
+
+    return render_template('devoirs.html', active_page='devoirs', homeworks=homeworks)
+
+@main_bp.route('/annonces', methods=['GET', 'POST'])
 @login_required
 def annonces():
-    return render_template('annonces.html', active_page='annonces', nb_annonces=1)
+    from app.models import Announcement, ClassGroup, Course, ScheduleEvent, db
+    
+    if request.method == 'POST' and current_user.role in ['admin', 'teacher']:
+        title = request.form.get('title')
+        content = request.form.get('content')
+        class_id = request.form.get('class_id')
+        
+        if title and content:
+            new_ann = Announcement(
+                author_id=current_user.user_id,
+                title=title,
+                content=content,
+                class_id=class_id if class_id and class_id != 'global' else None
+            )
+            db.session.add(new_ann)
+            db.session.commit()
+            flash('Annonce publiée avec succès !', 'success')
+            return redirect(url_for('main.annonces'))
+            
+    if current_user.role == 'admin':
+        annonces_list = Announcement.query.order_by(Announcement.created_at.desc()).all()
+    elif current_user.role == 'teacher':
+        courses = Course.query.filter_by(prof_id=current_user.id).all()
+        class_ids = set()
+        for c in courses:
+            scheds = db.session.query(ScheduleEvent.class_id).filter_by(course_id=c.id).distinct().all()
+            for s in scheds:
+                class_ids.add(s[0])
+        class_ids = list(class_ids)
+        
+        annonces_list = Announcement.query.filter(
+            (Announcement.class_id == None) | 
+            (Announcement.class_id.in_(class_ids)) | 
+            (Announcement.author_id == current_user.user_id)
+        ).order_by(Announcement.created_at.desc()).all()
+    else:
+        annonces_list = Announcement.query.filter(
+            (Announcement.class_id == None) | (Announcement.class_id == current_user.class_id)
+        ).order_by(Announcement.created_at.desc()).all()
+        
+    classes = ClassGroup.query.all()
+    nb_annonces = len(annonces_list)
+    current_user.last_announcements_read_at = datetime.utcnow()
+    db.session.commit()
+    return render_template('annonces.html', active_page='annonces', annonces=annonces_list, classes=classes, nb_annonces=nb_annonces)
 
 @main_bp.route('/chat')
 @login_required
 def chat():
     return render_template('chat.html', active_page='chat')
 
+@main_bp.route('/api/chat/contacts', methods=['GET'])
+@login_required
+def get_contacts():
+    users = User.query.filter(User.id != current_user.id).all()
+    contacts = [{
+        'user_id': u.user_id,
+        'firstname': u.firstname,
+        'lastname': u.lastname,
+        'role': u.role,
+        'profile_pic': u.profile_pic
+    } for u in users]
+    return jsonify(contacts)
+
+@main_bp.route('/api/chat/messages/<contact_id>', methods=['GET'])
+@login_required
+def get_messages(contact_id):
+    from sqlalchemy import or_, and_
+    messages = ChatMessage.query.filter(
+        or_(
+            and_(ChatMessage.envoyeur == current_user.user_id, ChatMessage.destinataire == contact_id),
+            and_(ChatMessage.envoyeur == contact_id, ChatMessage.destinataire == current_user.user_id)
+        )
+    ).order_by(ChatMessage.heure.asc()).all()
+    
+    return jsonify([{
+        'id': m.id,
+        'envoyeur': m.envoyeur,
+        'destinataire': m.destinataire,
+        'heure': m.heure.isoformat(),
+        'message': m.message
+    } for m in messages])
+
+@main_bp.route('/api/chat/send', methods=['POST'])
+@login_required
+def send_message():
+    data = request.get_json()
+    if not data or 'destinataire' not in data or 'message' not in data:
+        return jsonify({'error': 'Invalid request'}), 400
+        
+    msg = ChatMessage(
+        envoyeur=current_user.user_id,
+        destinataire=data['destinataire'],
+        message=data['message']
+    )
+    db.session.add(msg)
+    db.session.commit()
+    
+    return jsonify({
+        'id': msg.id,
+        'envoyeur': msg.envoyeur,
+        'destinataire': msg.destinataire,
+        'heure': msg.heure.isoformat(),
+        'message': msg.message
+    }), 201
+
+@main_bp.route('/group-chats', methods=['GET'])
+@login_required
+def get_group_chats():
+    # Only return groups the current user is a member of
+    user_groups = GroupChatMember.query.filter_by(user_id=current_user.user_id).all()
+    group_ids = [m.group_id for m in user_groups]
+    groups = GroupChat.query.filter(GroupChat.id.in_(group_ids)).all()
+    
+    return jsonify([{
+        'id': g.id,
+        'name': g.name,
+        'members_count': GroupChatMember.query.filter_by(group_id=g.id).count()
+    } for g in groups])
+
+@main_bp.route('/group-messages', methods=['GET'])
+@login_required
+def get_group_messages():
+    group_chat_id = request.args.get('group_chat_id')
+    if not group_chat_id:
+        return jsonify({'error': 'group_chat_id required'}), 400
+        
+    # Check if user is in group
+    member = GroupChatMember.query.filter_by(group_id=group_chat_id, user_id=current_user.user_id).first()
+    if not member:
+        return jsonify({'error': 'Not unauthorized'}), 403
+        
+    messages = GroupMessage.query.filter_by(group_id=group_chat_id).order_by(GroupMessage.created_at.asc()).all()
+    
+    return jsonify([{
+        'sender_id': m.sender_id,
+        'sender_name': m.sender.get_full_name() if m.sender else m.sender_id,
+        'message': m.message,
+        'created_at': m.created_at.strftime('%H:%M')
+    } for m in messages])
+
+@main_bp.route('/send-group-message', methods=['POST'])
+@login_required
+def send_group_message():
+    data = request.get_json()
+    if not data or 'group_chat_id' not in data or 'message' not in data:
+        return jsonify({'error': 'Invalid request'}), 400
+        
+    msg = GroupMessage(
+        group_id=data['group_chat_id'],
+        sender_id=current_user.user_id,
+        message=data['message']
+    )
+    db.session.add(msg)
+    db.session.commit()
+    
+    return jsonify({'status': 'ok'}), 200
+
+@main_bp.route('/create-group-chat', methods=['POST'])
+@login_required
+def create_group_chat():
+    data = request.get_json()
+    if not data or 'name' not in data:
+        return jsonify({'error': 'Name is required'}), 400
+        
+    group = GroupChat(
+        name=data['name'],
+        description=data.get('description', '')
+    )
+    db.session.add(group)
+    db.session.flush() # get group.id
+    
+    # Add creator
+    db.session.add(GroupChatMember(group_id=group.id, user_id=current_user.user_id))
+    
+    if 'members' in data and isinstance(data['members'], list):
+        for user_id in data['members']:
+            # avoid adding twice if the creator is in the members list
+            if user_id != current_user.user_id:
+                db.session.add(GroupChatMember(group_id=group.id, user_id=user_id))
+                
+    db.session.commit()
+    return jsonify({'status': 'ok', 'group_id': group.id}), 201
+
 @main_bp.route('/prof')
 @login_required
 def teacher_panel():
-    if current_user.role != 'teacher':
-        return redirect(url_for('main.dashboard'))
-    return "<h1>Bienvenue sur le panel Professeur !</h1><p>Cette page est en cours de construction.</p><br><a href='/logout'>Se dÃ©connecter</a>"
+    return redirect(url_for('main.dashboard'))
 
 # ==========================================
 # ROUTES ADMIN
@@ -357,20 +663,17 @@ def admin_panel():
             top_px = (start_hour - 6) * 60 + start_min
 
             time_str = f"{event.start_time.strftime('%H:%M')} - {event.end_time.strftime('%H:%M')}"
-            
 
             colors = ["event-blue", "event-green", "event-red", "event-yellow", "event-purple", "event-orange"]
             color_idx = event.course_id % len(colors) if event.course_id else 0
             color_class = colors[color_idx]
             
-
-            colors = ["event-blue", "event-green", "event-red", "event-yellow", "event-purple", "event-orange"]
-            color_idx = event.course_id % len(colors) if event.course_id else 0
-            color_class = colors[color_idx]
-            
-            teacher_name = "Inconnu"
-            if event.course and event.course.prof:
-                teacher_name = f"{event.course.prof.firstname} {event.course.prof.lastname}"
+            if current_user.role == 'teacher':
+                teacher_name = event.class_group.name if event.class_group else "Classe"
+            else:
+                teacher_name = "Inconnu"
+                if event.course and event.course.prof:
+                    teacher_name = f"{event.course.prof.firstname} {event.course.prof.lastname}"
             
             title = event.course.name if event.course else "Cours"
             if event.event_type:
@@ -418,6 +721,12 @@ def admin_panel():
 def admin_users():
     users = User.query.all()
     return render_template('admin_users.html', users=users, active_tab='users')
+
+@main_bp.route('/admin/tickets')
+@login_required
+@admin_required
+def admin_tickets():
+    return render_template('admin_tickets.html', active_tab='tickets')
 
 @main_bp.route('/admin/delete_user/<int:user_id>', methods=['POST'])
 @login_required
@@ -650,7 +959,7 @@ def admin_update_absence(absence_id):
         
     # Envoyer un e-mail à l'étudiant
     try:
-        msg = Message(subject="Mise à jour de votre absence",
+        msg = MailMessage(subject="Mise à jour de votre absence",
                       sender=current_app.config.get("MAIL_DEFAULT_SENDER"),
                       recipients=[student.email])
         msg.html = render_template("email_absence_update.html", 
@@ -715,3 +1024,333 @@ def profile():
         return redirect(url_for("main.profile"))
         
     return render_template("profile.html")
+
+# ==========================================
+# ROUTES TICKETS SUPPORT
+# ==========================================
+from app.models import SupportTicket, TicketMessage
+
+@main_bp.route('/api/tickets', methods=['GET'])
+@login_required
+def get_tickets():
+    if current_user.role == 'admin':
+        tickets = SupportTicket.query.order_by(SupportTicket.created_at.desc()).all()
+    else:
+        tickets = SupportTicket.query.filter_by(user_id=current_user.user_id).order_by(SupportTicket.created_at.desc()).all()
+    
+    return jsonify([{
+        'id': t.id,
+        'title': t.title,
+        'status': t.status,
+        'user_name': t.user.firstname + ' ' + t.user.lastname,
+        'created_at': t.created_at.strftime('%Y-%m-%d %H:%M')
+    } for t in tickets])
+
+@main_bp.route('/api/tickets', methods=['POST'])
+@login_required
+def create_ticket():
+    data = request.json
+    title = data.get('title')
+    description = data.get('description')
+    
+    if not title or not description:
+        return jsonify({'error': 'Le titre et la description sont requis.'}), 400
+        
+    ticket = SupportTicket(
+        title=title,
+        description=description,
+        user_id=current_user.user_id
+    )
+    db.session.add(ticket)
+    db.session.commit()
+    
+    # Optional: Admin notification or email could be triggered here
+    
+    return jsonify({
+        'id': ticket.id,
+        'title': ticket.title,
+        'status': ticket.status,
+        'message': 'Ticket créé avec succès.'
+    }), 201
+
+@main_bp.route('/api/tickets/<int:ticket_id>/messages', methods=['GET'])
+@login_required
+def get_ticket_messages(ticket_id):
+    ticket = SupportTicket.query.get_or_404(ticket_id)
+    
+    if current_user.role != 'admin' and ticket.user_id != current_user.user_id:
+        return jsonify({'error': 'Accès non autorisé.'}), 403
+        
+    messages = TicketMessage.query.filter_by(ticket_id=ticket.id).order_by(TicketMessage.created_at).all()
+    
+    res = []
+    # Add initial description as the first message
+    res.append({
+        'id': 0,
+        'sender_id': ticket.user_id,
+        'sender_name': ticket.user.firstname + ' ' + ticket.user.lastname,
+        'message': ticket.description,
+        'created_at': ticket.created_at.strftime('%Y-%m-%d %H:%M')
+    })
+    
+    for m in messages:
+        res.append({
+            'id': m.id,
+            'sender_id': m.sender_id,
+            'sender_name': m.sender.firstname + ' ' + m.sender.lastname if m.sender else 'Inconnu',
+            'message': m.message,
+            'created_at': m.created_at.strftime('%Y-%m-%d %H:%M')
+        })
+        
+    return jsonify({'ticket': {'title': ticket.title, 'status': ticket.status, 'user_id': ticket.user_id}, 'messages': res})
+
+@main_bp.route('/api/tickets/<int:ticket_id>/messages', methods=['POST'])
+@login_required
+def send_ticket_message(ticket_id):
+    ticket = SupportTicket.query.get_or_404(ticket_id)
+    
+    if current_user.role != 'admin' and ticket.user_id != current_user.user_id:
+        return jsonify({'error': 'Accès non autorisé.'}), 403
+        
+    if ticket.status == 'closed':
+        return jsonify({'error': 'Ce ticket est fermé.'}), 400
+        
+    data = request.json
+    message_text = data.get('message')
+    
+    if not message_text:
+        return jsonify({'error': 'Le message est vide.'}), 400
+        
+    msg = TicketMessage(
+        ticket_id=ticket.id,
+        sender_id=current_user.user_id,
+        message=message_text
+    )
+    
+    db.session.add(msg)
+    
+    if current_user.role == 'admin' and data.get('close_ticket'):
+        ticket.status = 'closed'
+        
+    db.session.commit()
+    
+    return jsonify({
+        'id': msg.id,
+        'sender_id': msg.sender_id,
+        'message': msg.message,
+        'created_at': msg.created_at.strftime('%Y-%m-%d %H:%M'),
+        'ticket_status': ticket.status
+    }), 201
+
+@main_bp.route('/api/tickets/<int:ticket_id>/close', methods=['POST'])
+@login_required
+def close_ticket(ticket_id):
+    ticket = SupportTicket.query.get_or_404(ticket_id)
+    
+    if current_user.role != 'admin' and ticket.user_id != current_user.user_id:
+        return jsonify({'error': 'Accès non autorisé.'}), 403
+        
+    ticket.status = 'closed'
+    db.session.commit()
+    
+    return jsonify({'status': 'closed', 'message': 'Ticket fermé avec succès.'})
+@main_bp.route('/api/teacher/students/<int:class_id>', methods=['GET'])
+@login_required
+def api_teacher_students(class_id):
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+    students = User.query.filter_by(class_id=class_id, role='student').all()
+    return jsonify([{'id': s.id, 'user_id': s.user_id, 'firstname': s.firstname, 'lastname': s.lastname, 'profile_pic': s.profile_pic} for s in students])
+
+
+@main_bp.route('/api/teacher/schedules_by_date', methods=['GET'])
+@login_required
+def api_teacher_schedules_by_date():
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    date_str = request.args.get('date')
+    if not date_str:
+        return jsonify([])
+        
+    try:
+        from datetime import datetime
+        query_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except Exception as e:
+        return jsonify([])
+        
+    from app.models import Course, ScheduleEvent
+    courses = Course.query.filter_by(prof_id=current_user.id).all()
+    course_ids = [c.id for c in courses]
+    
+    if not course_ids:
+        return jsonify([])
+        
+    from sqlalchemy import func
+    schedules = ScheduleEvent.query.filter(
+        ScheduleEvent.course_id.in_(course_ids),
+        func.date(ScheduleEvent.start_time) == query_date
+    ).order_by(ScheduleEvent.start_time).all()
+    
+    result = []
+    for s in schedules:
+        result.append({
+            'schedule_id': s.id,
+            'class_id': s.class_id,
+            'class_name': s.class_group.name,
+            'course_id': s.course_id,
+            'course_name': s.course.name,
+            'start_time': s.start_time.strftime('%H:%M'),
+            'end_time': s.end_time.strftime('%H:%M')
+        })
+        
+    return jsonify(result)
+
+@main_bp.route('/api/teacher/absences', methods=['GET'])
+@login_required
+def api_get_absences():
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+    class_id = request.args.get('class_id')
+    course_id = request.args.get('course_id')
+    date_str = request.args.get('date')
+    if not (class_id and course_id and date_str):
+        return jsonify({'error': 'Missing parameters'}), 400
+    try:
+        query_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
+    absences = Absence.query.join(User).filter(
+        User.class_id == class_id,
+        Absence.course_id == course_id,
+        db.func.date(Absence.date) == query_date
+    ).all()
+    return jsonify([{'student_id': a.student_id, 'is_justified': a.is_justified} for a in absences])
+
+@main_bp.route('/api/teacher/absences/toggle', methods=['POST'])
+@login_required
+def api_toggle_absence():
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+    data = request.get_json()
+    student_id = data.get('student_id')
+    course_id = data.get('course_id')
+    date_str = data.get('date')
+    try:
+        query_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
+
+    absence = Absence.query.filter(
+        Absence.student_id == student_id,
+        Absence.course_id == course_id,
+        db.func.date(Absence.date) == query_date
+    ).first()
+    
+    if absence:
+        db.session.delete(absence)
+        is_absent = False
+    else:
+        new_absence = Absence(student_id=student_id, course_id=course_id, date=query_date)
+        db.session.add(new_absence)
+        is_absent = True
+    
+    db.session.commit()
+    return jsonify({'success': True, 'is_absent': is_absent})
+
+@main_bp.route('/api/teacher/grades', methods=['GET'])
+@login_required
+def api_get_grades():
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+    class_id = request.args.get('class_id')
+    course_id = request.args.get('course_id')
+    grades = Grade.query.join(User).filter(User.class_id == class_id, Grade.course_id == course_id).all()
+    return jsonify([{'id': g.id, 'student_id': g.student_id, 'value': g.value, 'exam_name': g.exam_name, 'coefficient': g.coefficient} for g in grades])
+
+@main_bp.route('/api/teacher/grades', methods=['POST'])
+@login_required
+def api_submit_grade():
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+    data = request.get_json()
+    student_id = data.get('student_id')
+    course_id = data.get('course_id')
+    value = data.get('value')
+    exam_name = data.get('exam_name', 'Contrôle continu')
+    coefficient = data.get('coefficient', 1.0)
+    
+    new_grade = Grade(student_id=student_id, course_id=course_id, value=float(value), coefficient=float(coefficient), exam_name=exam_name)
+    db.session.add(new_grade)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@main_bp.route('/api/teacher/homeworks', methods=['GET'])
+@login_required
+def api_get_homeworks():
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+    class_id = request.args.get('class_id')
+    course_id = request.args.get('course_id')
+    homeworks = Homework.query.filter_by(class_id=class_id, course_id=course_id).all()
+    return jsonify([{'id': h.id, 'title': h.title, 'description': h.description, 'due_date': h.due_date.strftime('%Y-%m-%d %H:%M') if h.due_date else None} for h in homeworks])
+
+@main_bp.route('/api/teacher/homeworks', methods=['POST'])
+@login_required
+def api_submit_homework():
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+    data = request.get_json()
+    class_id = data.get('class_id')
+    course_id = data.get('course_id')
+    title = data.get('title')
+    description = data.get('description')
+    due_date_str = data.get('due_date')
+    
+    try:
+        due_date = datetime.strptime(due_date_str, '%Y-%m-%dT%H:%M') if due_date_str else None
+    except ValueError:
+        try:
+            due_date = datetime.strptime(due_date_str, '%Y-%m-%d')
+        except ValueError:
+            due_date = datetime.utcnow()
+            
+    hw = Homework(course_id=course_id, class_id=class_id, title=title, description=description, due_date=due_date)
+    db.session.add(hw)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@main_bp.route('/api/teacher/absences/batch', methods=['POST'])
+@login_required
+def api_batch_absences():
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Unauthorized'}), 403
+    data = request.get_json()
+    class_id = data.get('class_id')
+    course_id = data.get('course_id')
+    date_str = data.get('date')
+    absent_ids = data.get('absent_ids', [])
+    
+    try:
+        query_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
+
+    students = User.query.filter_by(class_id=class_id, role='student').all()
+    student_ids = [s.id for s in students]
+    
+    db.session.query(Absence).filter(
+        Absence.student_id.in_(student_ids),
+        Absence.course_id == course_id,
+        db.func.date(Absence.date) == query_date
+    ).delete(synchronize_session=False)
+    
+    schedule_id = data.get('schedule_id')
+    for sid in absent_ids:
+        if sid in student_ids:
+            new_abs = Absence(student_id=sid, course_id=course_id, date=query_date, schedule_id=schedule_id)
+            db.session.add(new_abs)
+            
+    db.session.commit()
+    return jsonify({'success': True})
+

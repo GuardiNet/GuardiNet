@@ -1,0 +1,517 @@
+.teacher-dashboard-container {
+    display: flex;
+    height: 100vh;
+    background-color: #e4e8ef;
+}
+
+/* Sidebar Styles */
+.teacher-sidebar {
+    width: 200px;
+    background-color: #c1d3c5;
+    border-right: 3px solid #000;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #000;
+}
+
+.teacher-avatar {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid #000;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.teacher-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.teacher-name {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #000;
+}
+
+.sidebar-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.tab-btn {
+    padding: 10px 12px;
+    text-decoration: none;
+    color: #000;
+    background-color: #a5bba9;
+    border: 2px solid #000;
+    border-left: 4px solid transparent;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.1s;
+    display: block;
+    font-family: inherit;
+}
+
+.tab-btn:hover {
+    background-color: #94a89d;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+}
+
+.tab-btn.active {
+    background-color: #94a89d;
+    border-left-color: #000;
+    box-shadow: inset 2px 0 0 #000;
+    font-weight: 700;
+}
+
+.nav-item {
+    padding: 10px 12px;
+    text-decoration: none;
+    color: #000;
+    background-color: #a5bba9;
+    border: 2px solid #000;
+    border-left: 4px solid transparent;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.1s;
+    display: block;
+}
+
+.nav-item:hover {
+    background-color: #94a89d;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+}
+
+.nav-item.active {
+    background-color: #94a89d;
+    border-left-color: #000;
+    box-shadow: inset 2px 0 0 #000;
+    font-weight: 700;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 2px solid #000;
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #d4a574;
+    border: 2px solid #000;
+    color: #000;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    display: block;
+    transition: all 0.1s;
+}
+
+.logout-btn:hover {
+    background-color: #c89561;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+}
+
+/* Main Content */
+.teacher-main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.left-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.right-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Card Styles */
+.dashboard-card {
+    background-color: white;
+    border: 3px solid #000;
+    box-shadow: 5px 5px 0 rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #a5bba9;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #000;
+    gap: 10px;
+}
+
+.card-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #000;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+/* Schedule Styles */
+.schedule-table {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.schedule-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.nav-day-btn {
+    background-color: #c1d3c5;
+    border: 2px solid #000;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #000;
+    transition: all 0.1s;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+}
+
+.nav-day-btn:hover {
+    background-color: #b0c5b6;
+    box-shadow: 3px 3px 0 rgba(0,0,0,0.15);
+    transform: translate(-1px, -1px);
+}
+
+.nav-day-btn:active {
+    box-shadow: 1px 1px 0 rgba(0,0,0,0.1);
+    transform: translate(1px, 1px);
+}
+
+.date-picker-btn {
+    background-color: #c1d3c5;
+    border: 2px solid #000;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #000;
+    transition: all 0.1s;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+    flex: 1;
+    max-width: 150px;
+}
+
+.date-picker-btn:hover {
+    background-color: #b0c5b6;
+    box-shadow: 3px 3px 0 rgba(0,0,0,0.15);
+    transform: translate(-1px, -1px);
+}
+
+/* Calendar Modal */
+.calendar-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.calendar-content {
+    background-color: white;
+    border: 3px solid #000;
+    box-shadow: 5px 5px 0 rgba(0,0,0,0.2);
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: #a5bba9;
+    padding: 10px;
+    border: 2px solid #000;
+    gap: 10px;
+}
+
+.calendar-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #000;
+}
+
+.calendar-btn {
+    background-color: #c1d3c5;
+    border: 2px solid #000;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #000;
+    transition: all 0.1s;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+}
+
+.calendar-btn:hover {
+    background-color: #b0c5b6;
+    box-shadow: 3px 3px 0 rgba(0,0,0,0.15);
+    transform: translate(-1px, -1px);
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 10px;
+    background-color: #e8e8e8;
+    padding: 5px;
+    border: 2px solid #000;
+}
+
+.weekday {
+    text-align: center;
+    font-weight: 600;
+    padding: 8px;
+    font-size: 0.85rem;
+    color: #000;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    background-color: #f9f9f9;
+    padding: 5px;
+    border: 2px solid #000;
+}
+
+.calendar-day {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #000;
+    background-color: white;
+    transition: all 0.1s;
+}
+
+.calendar-day:hover:not(.empty):not(.selected) {
+    background-color: #c1d3c5;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+}
+
+.calendar-day.empty {
+    background-color: #f0f0f0;
+    cursor: default;
+    color: #ccc;
+}
+
+.calendar-day.selected {
+    background-color: #a5bba9;
+    border: 2px solid #000;
+    font-weight: 700;
+    box-shadow: inset 2px 2px 0 rgba(0,0,0,0.2);
+}
+
+/* Schedule Grid */
+.schedule-grid-single {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.time-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 10px;
+    align-items: stretch;
+    min-height: 60px;
+    border-bottom: 1px solid #ddd;
+    position: relative;
+}
+
+.time-label {
+    background-color: #e8e8e8;
+    padding: 8px;
+    text-align: center;
+    border: 2px solid #000;
+    font-weight: 500;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+}
+
+.course-slot-container {
+    position: relative;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    min-height: 60px;
+    padding: 4px;
+}
+
+.schedule-card {
+    min-height: 500px;
+}
+
+.announcement-card {
+    min-height: 200px;
+}
+
+.chat-card {
+    min-height: 250px;
+}
+
+/* Chat Styles */
+.chat-message-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
+
+.message-sender {
+    font-weight: 500;
+    flex: 1;
+}
+
+.message-status {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 600;
+}
+
+.chat-more {
+    text-align: center;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.chat-more a {
+    text-decoration: none;
+    color: #000;
+    font-weight: 600;
+    transition: all 0.1s;
+    cursor: pointer;
+}
+
+.chat-more a:hover {
+    color: #94a89d;
+}
+
+.announcement-content {
+    text-align: center;
+    color: #666;
+    padding: 20px 0;
+}
+
+.announcement-content p {
+    margin: 0;
+}
+
+@media (max-width: 1024px) {
+    .teacher-dashboard-container {
+        flex-direction: column;
+    }
+
+    .teacher-sidebar {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        padding: 10px 20px;
+    }
+
+    .sidebar-header {
+        flex: 1;
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        gap: 10px;
+        flex: 2;
+    }
+
+    .tab-btn,
+    .nav-item {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+
+    .dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .time-label {
+        font-size: 0.75rem;
+        padding: 4px;
+        min-height: 50px;
+    }
+
+    .time-row {
+        min-height: 50px;
+        gap: 5px;
+    }
+}

@@ -1,0 +1,63 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Notes - Professeur{% endblock %}
+
+{% block extra_css %}
+<style>
+    .teacher-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .filters { background: white; padding: 20px; border: 2px solid #555; box-shadow: 4px 4px 0 #555; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; }
+    .filters select, .filters input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; flex-grow: 1; }
+    .filters button { padding: 10px 20px; background: #c1d3c5; border: 2px solid #555; cursor: pointer; font-weight: bold; }
+    .filters button:hover { background: #a5bdab; }
+    
+    table { width: 100%; border-collapse: collapse; background: white; border: 2px solid #555; }
+    th { background: #ebd1ea; padding: 15px; border: 1px solid #555; }
+    td { padding: 15px; border: 1px solid #555; text-align: center; }
+    
+    .grade-input { width: 80px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="teacher-container">
+    <h2 class="edt-main-title" style="font-size: 3rem; text-align: center; margin-bottom: 30px;">Saisie des Notes</h2>
+    
+    <div class="filters">
+        <select id="classSelect">
+            <option value="">Sélectionnez une classe</option>
+            {% for c in classes %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        
+        <select id="courseSelect">
+            <option value="">Sélectionnez un cours</option>
+            {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.name }}</option>
+            {% endfor %}
+        </select>
+        
+        <input type="text" id="examName" placeholder="Nom de l'évaluation (ex: Partiel 1)" value="Contrôle continu">
+        <input type="number" id="examCoeff" placeholder="Coeff" value="1" step="0.5" min="0.5" style="max-width: 80px;">
+        
+        <button onclick="loadStudents()">Charger la liste</button>
+    </div>
+    
+    <table id="gradesTable" style="display: none;">
+        <thead>
+            <tr>
+                <th>Étudiant</th>
+                <th>Note actuelle</th>
+                <th>Nouvelle Note (/20)</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="studentsBody">
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock %}
+
+    <script src="{{ url_for('static', filename='js/teacher_grades.js') }}"></script>
