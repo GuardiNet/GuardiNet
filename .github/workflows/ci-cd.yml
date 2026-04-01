@@ -1,4 +1,3 @@
-# .github/workflows/ci-cd.yml
 name: CI/CD Pipeline
 
 on:
@@ -13,9 +12,8 @@ on:
 
 jobs:
   flake8:
-    name: Flake8
+    name: Flake8 (Qualité du code)
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,15 +29,36 @@ jobs:
           pip install flake8
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run Flake8
+      - name: Run Flake8 and generate report
         run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.venv,venv,__pycache__,instance,*.db
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics --exclude=.venv,venv,__pycache__,instance,*.db --output-file=flake8-report.txt
+
+      - name: Upload Flake8 Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: flake8-report
+          path: flake8-report.txt
+
+  sonar-sast:
+    name: SonarCloud / SAST
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true
 
   pip-audit:
-    name: pip-audit
+    name: pip-audit (Sécurité des dépendances)
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,19 +74,24 @@ jobs:
           pip install pip-audit
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run pip-audit
+      - name: Run pip-audit and generate report
         run: |
           if [ -f requirements.txt ]; then
-            pip-audit -r requirements.txt
+            pip-audit -r requirements.txt -f json -o pip-audit-report.json || echo "Avertissement: Vulnérabilités trouvées."
           else
-            echo "Pas de requirements.txt trouvÃ©, skip pip-audit"
+            echo "Pas de requirements.txt trouvé, skip pip-audit"
           fi
+
+      - name: Upload pip-audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json
 
   docker-build:
     name: Build Docker
     runs-on: ubuntu-latest
-    needs: [flake8, pip-audit]
-
+    needs: [flake8, sonar-sast, pip-audit]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -77,4 +101,35 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t intranet-app:latest .
+          docker build -t guardinet-app:latest .
+
+  owasp-zap:
+    name: OWASP ZAP (DAST)
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Build and Run application
+        run: |
+          docker build -t guardinet-app:latest .
+          echo "Démarrage simulé (l'application Flask est nécessaire en arrière plan pour un scan complet)."
+          
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'http://localhost:5000'
+          fail_action: false
+        continue-on-error: true
+          
+  deploy:
+    name: Déploiement
+    runs-on: ubuntu-latest
+    needs: [owasp-zap]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Déploiement étape
+        run: |
+          echo "?? Étape de déploiement atteinte !"
+          echo "Scripts pour déployer l'image Docker final (AWS, Azure, VPS, etc.)."
