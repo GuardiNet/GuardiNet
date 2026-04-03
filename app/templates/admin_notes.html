@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuardiNet - Génération des Bulletins</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Barre latérale d'administration -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <span> GuardiNet</span>
+            </div>
+            <div style="flex-grow: 1;">
+                <h2>Administration</h2>
+                <div style="padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                    <small style="color: var(--text-color);">Connecté en tant que:</small>
+                    <p style="margin: 5px 0 0 0; font-weight: 600;">{{ current_user.get_full_name() }}</p>
+                </div>
+            </div>
+            <nav class="admin-nav">
+                <a href="/dashboard" class="admin-nav-item">
+                    Tableau de bord
+                </a>
+                <a href="/admin/tickets" class="admin-nav-item">
+                    Gestion des tickets
+                </a>
+                <a href="/admin/notes" class="admin-nav-item active">
+                    Administration des notes
+                </a>
+                <a href="/logout" class="admin-nav-item">
+                    Déconnexion
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Contenu principal -->
+        <main class="admin-main" style="padding: 30px;">
+            <div class="admin-header">
+                <h1>Génération des Bulletins</h1>
+                <p style="color: var(--text-light); margin-top: 5px;">Consultez les moyennes et générez les appréciations par étudiant.</p>
+            </div>
+
+            <!-- Alert Messages (ex: email sent success) -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="{% if category == 'error' %}error-message{% else %}success-message{% endif %}" style="padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="admin-card" style="margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                <div class="table-responsive" style="border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);">
+                    <table class="users-table" style="width: 100%; border-collapse: collapse; background: white;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 15px; text-transform: uppercase; font-size: 13px; color: #6c7a89; border-bottom: 2px solid #e1e8ed;">Élève</th>
+                                <th style="padding: 15px; text-transform: uppercase; font-size: 13px; color: #6c7a89; border-bottom: 2px solid #e1e8ed;">Classe</th>
+                                <th style="padding: 15px; text-transform: uppercase; font-size: 13px; color: #6c7a89; border-bottom: 2px solid #e1e8ed; text-align: center;">Moyenne G.</th>
+                                <th style="padding: 15px; text-transform: uppercase; font-size: 13px; color: #6c7a89; border-bottom: 2px solid #e1e8ed; text-align: center;">Notes Enreg.</th>
+                                <th style="padding: 15px; text-transform: uppercase; font-size: 13px; color: #6c7a89; border-bottom: 2px solid #e1e8ed; text-align: center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in student_stats %}
+                            <tr style="border-bottom: 1px solid #e1e8ed; transition: background 0.2s;">
+                                <td style="padding: 15px; font-weight: 600; color: #2c3e50;">{{ stat.student.firstname }} {{ stat.student.lastname }}</td>
+                                <td style="padding: 15px; color: #34495e;">
+                                    <span style="background: #e3f2fd; color: #1976d2; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">
+                                        {{ stat.class_name }}
+                                    </span>
+                                </td>
+                                <td style="padding: 15px; text-align: center; font-weight: bold; color: {% if stat.average and stat.average >= 10 %}#27ae60{% elif stat.average %}#e74c3c{% else %}#7f8c8d{% endif %}; font-size: 16px;">
+                                    {{ stat.average if stat.average is not none else 'N/A' }}
+                                </td>
+                                <td style="padding: 15px; text-align: center; color: #7f8c8d; font-size: 14px;">
+                                    {{ stat.grade_count }} note(s)
+                                </td>
+                                <td style="padding: 15px; text-align: center;">
+                                    <button onclick="openBulletinModal('{{ stat.student.id }}', '{{ stat.student.firstname }} {{ stat.student.lastname }}', '{{ stat.average if stat.average is not none else 'N/A' }}')" class="btn-sm" style="background: #4CAF50; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(76,175,80,0.2);">
+                                        📝 Éditer Bulletin
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 30px; color: #95a5a6; font-style: italic;">Aucun élève trouvé dans la base de données.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Édition Bulletin -->
+    <div id="bulletin-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+        <div style="background: #fff; padding: 30px 40px; border-radius: 12px; width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative;">
+            <span onclick="closeBulletinModal()" style="position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #95a5a6; font-weight: bold;">&times;</span>
+            
+            <h2 style="margin-top: 0; color: #2c3e50; font-size: 22px; border-bottom: 2px solid #e1e8ed; padding-bottom: 10px;">Générer un Bulletin</h2>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 13px; color: #7f8c8d; text-transform: uppercase; font-weight: bold;">Élève</div>
+                    <div id="modal-student-name" style="font-size: 16px; font-weight: 600; color: #2c3e50;">-</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 13px; color: #7f8c8d; text-transform: uppercase; font-weight: bold;">Moyenne Globale</div>
+                    <div id="modal-student-avg" style="font-size: 22px; font-weight: bold; color: #27ae60;">-</div>
+                </div>
+            </div>
+
+            <!-- Le formulaire qui sera posté vers /admin/notes/bulletin/<student_id> -->
+            <form id="bulletin-form" method="POST" target="_blank">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" id="action-input" name="action" value="print"/>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; color: #34495e; margin-bottom: 8px;">Statut (Décision du Jury) :</label>
+                    <select name="status" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #bdc3c7; font-size: 15px; background: #fff;">
+                        <option value="Passage">✅ Passage</option>
+                        <option value="Rattrapage">⚠️ Rattrapage</option>
+                        <option value="Redoublement">❌ Redoublement</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; font-weight: 600; color: #34495e; margin-bottom: 8px;">Appréciation Générale :</label>
+                    <textarea name="appreciation" rows="4" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #bdc3c7; font-size: 15px; resize: vertical; box-sizing: border-box; font-family: inherit;" placeholder="Saisir les remarques du conseil de classe ici..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                    <button type="button" onclick="submitBulletin('print')" style="background: #3498db; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                        📄 Générer PDF
+                    </button>
+                    <button type="button" onclick="submitBulletin('email')" style="background: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                        📧 Envoyer par Mail
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openBulletinModal(studentId, studentName, studentAvg) {
+            document.getElementById('modal-student-name').innerText = studentName;
+            document.getElementById('modal-student-avg').innerText = studentAvg;
+            document.getElementById('modal-student-avg').style.color = (studentAvg >= 10 || studentAvg === 'N/A') ? '#27ae60' : '#e74c3c';
+            
+            document.getElementById('bulletin-form').action = '/admin/notes/bulletin/' + studentId;
+            document.getElementById('bulletin-modal').style.display = 'flex';
+        }
+
+        function closeBulletinModal() {
+            document.getElementById('bulletin-modal').style.display = 'none';
+            document.getElementById('bulletin-form').reset();
+        }
+
+        function submitBulletin(actionType) {
+            const form = document.getElementById('bulletin-form');
+            document.getElementById('action-input').value = actionType;
+            
+            if (actionType === 'email') {
+                form.target = "_self";
+                if(confirm('Êtes-vous sûr de vouloir envoyer ce bulletin par e-mail ?')) {
+                    form.submit();
+                    closeBulletinModal();
+                }
+            } else {
+                form.target = "_blank";
+                form.submit();
+            }
+        }
+    </script>
+</body>
+</html>
+

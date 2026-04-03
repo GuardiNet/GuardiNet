@@ -1,3 +1,4 @@
+from app import limiter
 from functools import wraps
 from app.models import SupportTicket, TicketMessage
 from flask import abort
@@ -108,6 +109,7 @@ def index():
 
 
 @main_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     if current_user.is_authenticated:
         if current_user.role == 'admin':
@@ -700,6 +702,8 @@ def admin_panel():
             schedule_days_dict[e_date].append({
                 'id': event.id,
                 'course_id': event.course_id,
+                'class_id': event.class_id,
+                'class_name': event.class_group.name if event.class_group else "Sans classe",
                 'time_str': time_str,
                 'title': title,
                 'teacher': teacher_name,
@@ -733,13 +737,6 @@ def admin_panel():
                            next_date=next_date.strftime('%Y-%m-%d'), selected_class_id=selected_class_id)
 
 
-@main_bp.route('/admin/users')
-@login_required
-@admin_required
-def admin_users():
-    users = User.query.all()
-    return render_template('admin_users.html', users=users, active_tab='users')
-
 
 @main_bp.route('/admin/tickets')
 @login_required
@@ -753,10 +750,85 @@ def admin_tickets():
 @admin_required
 def admin_notes():
     from app.models import ClassGroup, Course, Grade, User
-    classes = ClassGroup.query.all()
-    teachers = User.query.filter_by(role='teacher').all()
-    courses = Course.query.all()
-    return render_template('note_admin.html', active_tab='notes', classes=classes, teachers=teachers, courses=courses)
+    students = User.query.filter_by(role='student').all()
+    
+    student_stats = []
+    for student in students:
+        grades = Grade.query.filter_by(student_id=student.id).all()
+        total_points = sum(g.value * g.coefficient for g in grades)
+        total_coef = sum(g.coefficient for g in grades)
+        average = round(total_points / total_coef, 2) if total_coef > 0 else None
+        
+        student_stats.append({
+            'student': student,
+            'class_name': student.class_group.name if student.class_group else 'Non assigné',
+            'average': average,
+            'grade_count': len(grades)
+        })
+        
+    return render_template('admin_notes.html', active_tab='notes', student_stats=student_stats)
+
+@main_bp.route('/admin/notes/bulletin/<int:student_id>', methods=['POST'])
+@login_required
+@admin_required
+def generate_bulletin(student_id):
+    from app.models import Grade, User
+    from flask_mail import Message as MailMessage
+    from app import mail
+    
+    student = User.query.get_or_404(student_id)
+    grades = Grade.query.filter_by(student_id=student.id).all()
+    
+    appreciation = request.form.get('appreciation', 'Aucune appréciation.')
+    status = request.form.get('status', 'Passage')
+    action = request.form.get('action') # 'print' or 'email'
+    
+    total_points = sum(g.value * g.coefficient for g in grades)
+    total_coef = sum(g.coefficient for g in grades)
+    average = round(total_points / total_coef, 2) if total_coef > 0 else None
+    
+    # Prépare les données pour le rendu
+    grades_by_course = {}
+    for g in grades:
+        c_name = g.course.name if g.course else 'Matière inconnue'
+        if c_name not in grades_by_course:
+            grades_by_course[c_name] = []
+        grades_by_course[c_name].append({
+            'exam': g.exam_name,
+            'value': g.value,
+            'coef': g.coefficient
+        })
+        
+    # Calcul moyenne par matière
+    courses_stats = []
+    for course, gs in grades_by_course.items():
+        cp = sum(g['value'] * g['coef'] for g in gs)
+        cc = sum(g['coef'] for g in gs)
+        cavg = round(cp / cc, 2) if cc > 0 else None
+        courses_stats.append({
+            'name': course,
+            'average': cavg,
+            'grades': gs
+        })
+        
+    if action == 'email':
+        try:
+            msg = MailMessage('Votre Bulletin de Notes - GuardiNet',
+                sender=current_app.config.get('MAIL_DEFAULT_SENDER', 'noreply@guardinet.fr'),
+                recipients=[student.email])
+            msg.html = render_template('email_bulletin.html', student=student, courses_stats=courses_stats, average=average, appreciation=appreciation, status=status)
+            mail.send(msg)
+            flash(f"Bulletin envoyé avec succès à {student.firstname} {student.lastname}.", "success")
+        except Exception as e:
+            print(f"Erreur d'envoi du bulletin: {e}")
+            flash(f"Erreur lors de l'envoi de l'email: {str(e)}", "error")
+        return redirect(url_for('main.admin_notes'))
+        
+    elif action == 'print':
+        # Retourne simplement une page HTML prête à être imprimée en PDF par le navigateur
+        return render_template('bulletin_print.html', student=student, courses_stats=courses_stats, average=average, appreciation=appreciation, status=status)
+        
+    return redirect(url_for('main.admin_notes'))
 
 
 
@@ -766,13 +838,13 @@ def admin_notes():
 def delete_user(user_id):
     if current_user.id == user_id:
         flash("Vous ne pouvez pas supprimer votre propre compte administratif.", "error")
-        return redirect(url_for('main.admin_users'))
+        return redirect(url_for('main.admin_panel', tab='users'))
 
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
     flash(f"L'utilisateur {user.firstname} {user.lastname} a été supprimé avec succès.", "success")
-    return redirect(url_for('main.admin_users'))
+    return redirect(url_for('main.admin_panel', tab='users'))
 
 
 @main_bp.route('/admin/infrastructure', methods=['GET', 'POST'])
@@ -790,6 +862,25 @@ def admin_infrastructure():
                 db.session.add(new_class)
                 db.session.commit()
                 flash(f"Classe {name} créée avec succès.", "success")
+
+        elif action == 'delete_class':
+            class_id = request.form.get('class_id')
+            if class_id:
+                class_grp = ClassGroup.query.get(class_id)
+                if class_grp:
+                    from app.models import Assignment, Announcement
+                    for student in class_grp.students:
+                        student.class_id = None
+                    for schedule in class_grp.schedules:
+                        db.session.delete(schedule)
+                    for assignment in Assignment.query.filter_by(class_id=class_id).all():
+                        db.session.delete(assignment)
+                    for announcement in Announcement.query.filter_by(class_id=class_id).all():
+                        db.session.delete(announcement)
+                    
+                    db.session.delete(class_grp)
+                    db.session.commit()
+                    flash(f"Classe {class_grp.name} supprimée avec succès.", "success")
 
         elif action == 'assign_user_class':
             user_id = request.form.get('user_id')
@@ -836,46 +927,17 @@ def admin_infrastructure():
         elif action == 'edit_schedule':
             event_id = request.form.get('event_id')
             course_id = request.form.get('course_id')
+            class_id = request.form.get('class_id')
             start_time_str = request.form.get('start_time')
             end_time_str = request.form.get('end_time')
             room = request.form.get('room')
             event_type = request.form.get('event_type')
 
             event = ScheduleEvent.query.get(event_id)
-            if event and course_id and start_time_str and end_time_str:
+            if event and course_id and class_id and start_time_str and end_time_str:
                 try:
                     event.course_id = course_id
-                    event.start_time = datetime.fromisoformat(start_time_str)
-                    event.end_time = datetime.fromisoformat(end_time_str)
-                    event.room = room
-                    event.event_type = event_type
-                    db.session.commit()
-                    flash("Événement modifié avec succès.", "success")
-                except ValueError:
-                    flash("Format de date invalide.", "error")
-            return redirect(url_for('main.admin_panel', tab='edt'))
-
-        elif action == 'delete_schedule':
-            event_id = request.form.get('event_id')
-            event = ScheduleEvent.query.get(event_id)
-            if event:
-                db.session.delete(event)
-                db.session.commit()
-                flash("Événement supprimé avec succès.", "success")
-            return redirect(url_for('main.admin_panel', tab='edt'))
-
-        elif action == 'edit_schedule':
-            event_id = request.form.get('event_id')
-            course_id = request.form.get('course_id')
-            start_time_str = request.form.get('start_time')
-            end_time_str = request.form.get('end_time')
-            room = request.form.get('room')
-            event_type = request.form.get('event_type')
-
-            event = ScheduleEvent.query.get(event_id)
-            if event and course_id and start_time_str and end_time_str:
-                try:
-                    event.course_id = course_id
+                    event.class_id = class_id
                     event.start_time = datetime.fromisoformat(start_time_str)
                     event.end_time = datetime.fromisoformat(end_time_str)
                     event.room = room
@@ -897,32 +959,37 @@ def admin_infrastructure():
 
         elif action == 'create_schedule':
             course_id = request.form.get('course_id')
-            class_id = request.form.get('class_id')
+            class_ids = request.form.getlist('class_id')
+            if not class_ids:
+                single_class_id = request.form.get('class_id')
+                if single_class_id:
+                    class_ids = [single_class_id]
             start_time_str = request.form.get('start_time')
             end_time_str = request.form.get('end_time')
             room = request.form.get('room')
             event_type = request.form.get('event_type')
 
-            if course_id and class_id and start_time_str and end_time_str:
+            if course_id and class_ids and start_time_str and end_time_str:
                 try:
                     start_time = datetime.fromisoformat(start_time_str)
                     end_time = datetime.fromisoformat(end_time_str)
 
-                    new_event = ScheduleEvent(
-                        course_id=course_id,
-                        class_id=class_id,
-                        start_time=start_time,
-                        end_time=end_time,
-                        room=room,
-                        event_type=event_type
-                    )
-                    db.session.add(new_event)
+                    for class_id in class_ids:
+                        new_event = ScheduleEvent(
+                            course_id=course_id,
+                            class_id=class_id,
+                            start_time=start_time,
+                            end_time=end_time,
+                            room=room,
+                            event_type=event_type
+                        )
+                        db.session.add(new_event)
                     db.session.commit()
-                    flash("Événement ajouté à l'emploi du temps.", "success")
+                    flash(f"{len(class_ids)} événement(s) ajouté(s) à l'emploi du temps.", "success")
                 except ValueError:
                     flash("Erreur dans le format des dates.", "error")
 
-        return redirect(url_for('main.admin_panel'))
+        return redirect(url_for('main.admin_panel', tab='edt'))
 
     return redirect(url_for('main.admin_panel'))
 
@@ -1450,6 +1517,7 @@ def api_batch_absences():
 import secrets
 
 @main_bp.route('/forgot-password', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def forgot_password():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
@@ -1509,6 +1577,7 @@ def reset_password(token):
             
         user = User.query.get(reset.user_id)
         user.set_password(password)
+        user.is_password_temporary = False
         reset.used = True
         
         db.session.commit()
@@ -1543,4 +1612,4 @@ def admin_force_reset_password(user_id):
         print(f"Erreur envoi email: {e}")
         flash(f'Le mot de passe a été réinitialisé à : {new_password}, mais l\'email n\'a pu être envoyé.', 'error')
         
-    return redirect(url_for('main.admin_users'))
+    return redirect(url_for('main.admin_panel', tab='users'))

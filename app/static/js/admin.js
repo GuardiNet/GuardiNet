@@ -5,10 +5,11 @@ function editCourse(id, name, prof_id) {
                 document.getElementById('edit-course-modal').style.display = 'block';
             }
             
-            function editSchedule(id, course_id, start_time, end_time, room, event_type) {
+            function editSchedule(id, course_id, class_id, start_time, end_time, room, event_type) {
                 document.getElementById('edit_event_id').value = id;
                 document.getElementById('delete_event_id').value = id;
                 document.getElementById('edit_sched_course_id').value = course_id;
+                document.getElementById('edit_sched_class_id').value = class_id;
                 document.getElementById('edit_start_time').value = start_time;
                 document.getElementById('edit_end_time').value = end_time;
                 document.getElementById('edit_room').value = room || '';

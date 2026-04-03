@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<body style="font-family: Arial, sans-serif; background-color: #f7f9fa; padding: 20px; line-height: 1.6;">
+    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 8px; border-top: 4px solid #4CAF50;">
+        <h2 style="color: #2c3e50; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 15px;">Bonjour {{ student.firstname }},</h2>
+        <p style="font-size: 16px; color: #555;">Voici votre relevé de notes pour la période en cours.</p>
+        
+        <div style="background-color: #f4f6f8; padding: 15px; border-radius: 6px; text-align: center; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px; text-transform: uppercase; color: #7f8c8d; font-weight: bold;">Moyenne Générale</p>
+            <p style="margin: 5px 0 0 0; font-size: 28px; font-weight: bold; color: #4CAF50;">{{ average if average is not none else 'N/A' }} / 20</p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+            <thead>
+                <tr style="background-color: #f8f9fa;">
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd; color: #7f8c8d;">Matière</th>
+                    <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd; color: #7f8c8d;">Moyenne</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in courses_stats %}
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #2c3e50; font-weight: bold;">{{ stat.name }}</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee; color: #2980b9; font-weight: bold;">{{ stat.average if stat.average is not none else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div style="background-color: #fff8e1; border-left: 4px solid #f39c12; padding: 15px; margin-bottom: 20px;">
+            <h4 style="margin: 0 0 10px 0; color: #d35400;">Appréciation de l'équipe pédagogique :</h4>
+            <div style="margin: 0; color: #555; white-space: pre-wrap; font-family: inherit;">{{ appreciation }}</div>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <span style="display: inline-block; padding: 10px 20px; background-color: {% if status == 'Passage' %}#4CAF50{% else %}#e74c3c{% endif %}; color: white; font-weight: bold; border-radius: 4px; font-size: 16px;">
+                Décision : {{ status }}
+            </span>
+        </div>
+        
+        <p style="font-size: 14px; color: #999; text-align: center; margin-top: 40px;">
+            Cordialement,<br>L'équipe pédagogique GuardiNet
+        </p>
+    </div>
+</body>
+</html>
+

@@ -68,6 +68,9 @@
                 <a href="/admin/tickets" class="admin-nav-item active">
                     Gestion des tickets
                 </a>
+                <a href="/admin/notes" class="admin-nav-item">
+                    Administration des notes
+                </a>
                 <a href="/logout" class="admin-nav-item">
                     Déconnexion
                 </a>
@@ -222,7 +225,7 @@
         async function fermerTicketAdmin(id) {
             if (!confirm('Voulez-vous vraiment fermer ce ticket ?')) return;
             try {
-                await fetch(`/api/tickets/${id}/close`, { method: 'POST' });
+                await fetch(`/api/tickets/${id}/close`, { method: 'POST', headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } });
                 await chargerTickets();
                 if (currentChat === id) {
                     currentChat = null;
@@ -246,7 +249,7 @@
             try {
                 const res = await fetch(`/api/tickets/${currentChat}/messages`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')},
                     body: JSON.stringify({message: msg})
                 });
                 if (res.ok) {

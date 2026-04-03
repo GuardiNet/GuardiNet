@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuardiNet - Rendu Bulletin</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; margin: 0 auto; max-width: 900px; background-color: #f7f9fa; }
+        .bulletin-container { background: #fff; padding: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border-radius: 12px; }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #2ecc71; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo { font-size: 28px; font-weight: bold; color: #2c3e50; }
+        .title { text-align: right; }
+        .title h1 { margin: 0 0 5px 0; color: #2c3e50; font-size: 24px; }
+        .title p { margin: 0; color: #7f8c8d; font-size: 16px; }
+        
+        .student-info { margin-bottom: 40px; background: #e8f5e9; padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; }
+        .student-info div { display: flex; flex-direction: column; }
+        .info-label { font-size: 12px; text-transform: uppercase; color: #27ae60; font-weight: 700; margin-bottom: 5px; }
+        .info-val { font-size: 16px; color: #2c3e50; font-weight: 600; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 15px; }
+        th { background-color: #f8f9fa; text-align: left; padding: 12px 15px; color: #7f8c8d; border-bottom: 2px solid #ecf0f1; font-weight: 600; text-transform: uppercase; font-size: 13px; }
+        td { padding: 15px; border-bottom: 1px solid #ecf0f1; color: #34495e; }
+        .course-name { font-weight: 600; color: #2c3e50; }
+        .course-avg { font-weight: 700; text-align: right; color: #2980b9; }
+        .overall { font-size: 18px; font-weight: bold; background: #fafbfc; border-top: 2px solid #bdc3c7; }
+        .overall td { padding: 20px 15px; color: #2c3e50; }
+        
+        .footer-section { display: flex; gap: 30px; }
+        .appreciation-box, .status-box { flex: 1; padding: 20px; border: 1px solid #e1e8ed; border-radius: 8px; background: #fff; }
+        .box-title { font-size: 14px; text-transform: uppercase; font-weight: 700; color: #95a5a6; margin-bottom: 10px; }
+        .box-content { font-size: 16px; color: #2c3e50; line-height: 1.5; }
+        .status-badge { display: inline-block; padding: 8px 16px; background-color: {% if status == 'Passage' %}#d4edda{% else %}#fdede8{% endif %}; color: {% if status == 'Passage' %}#155724{% else %}#721c24{% endif %}; border-radius: 20px; font-weight: 600; }
+        
+        @media print {
+            body { background: #fff; padding: 0; margin: 0; }
+            .bulletin-container { box-shadow: none; padding: 0; border-radius: 0; }
+            .no-print { display: none !important; }
+        }
+        
+        .no-print { text-align: center; margin-bottom: 20px; }
+        .btn-print { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">Imprimer / Sauvegarder en PDF</button>
+        <button class="btn-print" style="background:#ccc; color:#333; margin-left:10px" onclick="window.close()">Fermer</button>
+    </div>
+
+    <div class="bulletin-container">
+        <div class="header">
+            <div class="logo">GuardiNet</div>
+            <div class="title">
+                <h1>Bulletin de Notes</h1>
+                <p>Année Scolaire 2025-2026</p>
+            </div>
+        </div>
+        
+        <div class="student-info">
+            <div>
+                <span class="info-label">Élève</span>
+                <span class="info-val">{{ student.firstname }} {{ student.lastname }}</span>
+            </div>
+            <div>
+                <span class="info-label">Email</span>
+                <span class="info-val">{{ student.email }}</span>
+            </div>
+            <div>
+                <span class="info-label">Classe</span>
+                <span class="info-val">{{ student.class_group.name if student.class_group else 'Non assigné' }}</span>
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Matière</th>
+                    <th>Moyenne</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in courses_stats %}
+                <tr>
+                    <td class="course-name">{{ stat.name }}</td>
+                    <td class="course-avg">{{ stat.average if stat.average is not none else 'N/A' }} / 20</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" style="text-align:center; padding:30px; color:#999;">Aucune note enregistrée.</td>
+                </tr>
+                {% endfor %}
+                <tr class="overall">
+                    <td style="text-align: right; text-transform: uppercase;">Moyenne Générale :</td>
+                    <td style="text-align: right; color: #27ae60;">{{ average if average is not none else 'N/A' }} / 20</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="footer-section">
+            <div class="appreciation-box">
+                <div class="box-title">Appréciation Générale</div>
+                <div class="box-content" style="white-space: pre-wrap;">{{ appreciation }}</div>
+            </div>
+            <div class="status-box">
+                <div class="box-title">Décision du Jury</div>
+                <div class="box-content">
+                    <span class="status-badge">{{ status }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Lancer l'impression automatiquement si on veut :
+        // setTimeout(() => window.print(), 500);
+    </script>
+</body>
+</html>
+

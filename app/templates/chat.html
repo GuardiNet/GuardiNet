@@ -87,7 +87,7 @@
             Groupes
         </div>
         <div class="group-controls">
-            <button onclick="afficherCreationGroupe()" class="chat-send-btn" style="width: 100%; cursor: pointer;">
+            <button onclick="afficherCreationGroupe()" class="chat-send-btn" style="width: 100%; cursor: pointer; background-color: var(--primary-color, #4CAF50); border-radius: 6px; padding: 10px; margin-bottom: 15px; font-weight: bold;">
                 ➕ Créer un groupe
             </button>
         </div>
@@ -123,7 +123,7 @@
             Tickets
         </div>
         <div class="create-ticket-section">
-            <button onclick="afficherCreationTicket()" class="chat-send-btn" style="width: 100%; cursor: pointer;">
+            <button onclick="afficherCreationTicket()" class="chat-send-btn" style="width: 100%; cursor: pointer; background-color: var(--primary-color, #4CAF50); border-radius: 6px; padding: 10px; margin-bottom: 15px; font-weight: bold;">
                 ➕ Créer un ticket
             </button>
         </div>
@@ -153,27 +153,27 @@
 {% endif %}
 
 <!-- Modal pour créer un ticket -->
-<div id="ticket-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
-    <div style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 400px; border-radius: 5px;">
-        <span onclick="fermerTicketModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-        <h2>Créer un ticket de support</h2>
-        <input id="new-ticket-subject" type="text" placeholder="Sujet du ticket..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #555; border-radius: 3px;">
-        <textarea id="new-ticket-message" placeholder="Décrivez votre problème..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #555; border-radius: 3px; min-height: 100px; font-family: inherit;"></textarea>
-        <button onclick="creerTicket()" class="chat-send-btn" style="width: 100%; cursor: pointer; margin-top: 10px;">Créer le ticket</button>
+<div id="ticket-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div style="background-color: #fff; padding: 25px; border: 2px solid #000; width: 400px; border-radius: 12px; box-shadow: 4px 4px 0px rgba(0,0,0,0.1); position: relative;">
+        <span onclick="fermerTicketModal()" style="color: #666; position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#666'">&times;</span>
+        <h2 style="margin-top: 0; margin-bottom: 20px; font-size: 1.5em; color: #333;">Créer un ticket de support</h2>
+        <input id="new-ticket-subject" type="text" placeholder="Sujet du ticket..." style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 14px;">
+        <textarea id="new-ticket-message" placeholder="Décrivez votre problème..." style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; min-height: 120px; font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
+        <button onclick="creerTicket()" class="chat-send-btn" style="width: 100%; cursor: pointer; background-color: var(--primary-color, #4CAF50); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; transition: opacity 0.2s, transform 0.1s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">Créer le ticket</button>
     </div>
 </div>
 
 <!-- Modal pour créer un groupe -->
-<div id="group-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
-    <div style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 500px; border-radius: 5px; max-height: 80vh; overflow-y: auto;">
-        <span onclick="fermerGroupModal()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-        <h2>Créer un chat groupé</h2>
-        <input id="group-name" type="text" placeholder="Nom du groupe..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #555; border-radius: 3px;">
-        <textarea id="group-description" placeholder="Description (optionnel)..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #555; border-radius: 3px; height: 60px; font-family: inherit;"></textarea>
-        <label style="font-weight: bold; display: block; margin-top: 15px;">Ajouter des membres :</label>
-        <div id="group-members-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+<div id="group-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div style="background-color: #fff; padding: 25px; border: 2px solid #000; width: 500px; border-radius: 12px; box-shadow: 4px 4px 0px rgba(0,0,0,0.1); max-height: 85vh; overflow-y: auto; position: relative;">
+        <span onclick="fermerGroupModal()" style="color: #666; position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#666'">&times;</span>
+        <h2 style="margin-top: 0; margin-bottom: 20px; font-size: 1.5em; color: #333;">Créer un chat groupé</h2>
+        <input id="group-name" type="text" placeholder="Nom du groupe..." style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 14px;">
+        <textarea id="group-description" placeholder="Description (optionnel)..." style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; height: 80px; font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
+        <label style="font-weight: 600; display: block; margin-bottom: 10px; color: #444; font-size: 14px;">Ajouter des membres :</label>
+        <div id="group-members-list" style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 12px; margin-bottom: 20px; border-radius: 8px; background-color: #f9f9f9;">
         </div>
-        <button onclick="creerGroupe()" class="chat-send-btn" style="width: 100%; cursor: pointer; margin-top: 10px;">Créer le groupe</button>
+        <button onclick="creerGroupe()" class="chat-send-btn" style="width: 100%; cursor: pointer; background-color: var(--primary-color, #4CAF50); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; transition: opacity 0.2s, transform 0.1s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">Créer le groupe</button>
     </div>
 </div>
 
@@ -298,7 +298,7 @@ async function envoyerMessagePrive(e) {
     try {
         const res = await fetch("/api/chat/send", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
             body: JSON.stringify({
                 destinataire: currentChat,
                 message: message
@@ -389,7 +389,7 @@ async function envoyerMessageGroupe(e) {
 
     await fetch("/send-group-message", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
         body: JSON.stringify({
             group_chat_id: currentChat,
             message: message
@@ -417,7 +417,7 @@ function afficherCreationGroupe() {
             });
         });
     
-    document.getElementById('group-modal').style.display = 'block';
+    document.getElementById('group-modal').style.display = 'flex';
 }
 
 function fermerGroupModal() {
@@ -439,7 +439,7 @@ async function creerGroupe() {
     
     const res = await fetch('/create-group-chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
         body: JSON.stringify({
             name: name,
             description: description,
@@ -531,7 +531,7 @@ async function chargerTicketMessages(id) {
 async function fermerTicketAdmin(id) {
     if (!confirm('Voulez-vous vraiment fermer ce ticket ?')) return;
     try {
-        await fetch(`/api/tickets/${id}/close`, { method: 'POST' });
+        await fetch(`/api/tickets/${id}/close`, { method: 'POST', headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } });
         chargerTickets();
         currentChat = null;
         document.getElementById('ticket-subject').innerText = 'Aucun ticket sélectionné';
@@ -551,7 +551,7 @@ async function envoyerMessageTicket(e) {
     try {
         await fetch(`/api/tickets/${currentChat}/messages`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')},
             body: JSON.stringify({message: msg})
         });
         messageInput.value = '';
@@ -560,7 +560,7 @@ async function envoyerMessageTicket(e) {
 }
 
 function afficherCreationTicket() {
-    document.getElementById('ticket-modal').style.display = 'block';
+    document.getElementById('ticket-modal').style.display = 'flex';
 }
 
 function fermerTicketModal() {
@@ -577,7 +577,7 @@ async function creerTicket() {
     try {
         const res = await fetch('/api/tickets', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')},
             body: JSON.stringify({title: subject, description: message})
         });
         const data = await res.json();

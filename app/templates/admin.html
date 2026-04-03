@@ -94,9 +94,6 @@
                 <button class="admin-tab-btn {% if active_tab == 'users' %}active{% endif %}" onclick="openTab(event, 'users-tab')">
                     Gérer les comptes
                 </button>
-                <button class="admin-tab-btn {% if active_tab == 'password_resets' %}active{% endif %}" onclick="openTab(event, 'resets-tab')">
-                    Réinitialisation MDP
-                </button>
                 <button class="admin-tab-btn" onclick="openTab(event, 'classes-tab')">Classes</button>
                 <button class="admin-tab-btn" onclick="openTab(event, 'courses-tab')">Cours / Profs</button>
                 <button class="admin-tab-btn" onclick="openTab(event, 'edt-tab')">Emploi du temps</button>
@@ -234,7 +231,7 @@
                                                     {% if user.role == 'student' %}
                                                     <button type="button" class="btn-sm" style="background-color: #3498db; color: white;" onclick='changeClass({{ user.id }}, {{ user.class_id or "null" }}, {{ (user.firstname ~ " " ~ user.lastname)|tojson|safe }})'>Classe</button>
                                                     {% endif %}
-                                                    <form method="POST" action="/admin/users/reset-password/{{ user.id }}" style="display: inline;">
+                                                    <form method="POST" action="/admin/users/{{ user.id }}/force-reset-password" style="display: inline;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                         <button type="submit" class="btn-sm" onclick="return confirm('Envoyer un mot de passe temporaire à {{ user.email }}?');">Réinitialiser</button>
                                                     </form>
@@ -264,42 +261,6 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
-
-            <!-- TAB 3: Demandes de réinitialisation de mot de passe -->
-            <div id="resets-tab" class="admin-tab-content {% if active_tab == 'password_resets' %}active{% endif %}">
-                <div class="admin-card">
-                    <h2>Demandes de réinitialisation de mot de passe</h2>
-                    
-                    {% if resets %}
-                        <div class="table-responsive">
-                            <table class="users-table">
-                                <thead>
-                                    <tr>
-                                        <th>Email</th>
-                                        <th>Demandé le</th>
-                                        <th>Expire le</th>
-                                        <th>Statut</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for reset in resets %}
-                                        <tr>
-                                            <td>{{ reset.email }}</td>
-                                            <td>{{ reset.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                                            <td>{{ reset.expires_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                                            <td><span class="status-active">⏳ En attente</span></td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div style="text-align: center; padding: 40px; color: #888;">
-                            <p>Aucune demande de réinitialisation en attente</p>
-                        </div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -345,6 +306,39 @@
                             <button type="submit" class="btn-submit">Assigner</button>
                         </div>
                     </form>
+                </div>
+
+                <div class="admin-card" style="margin-top: 20px;">
+                    <h2>Liste des classes</h2>
+                    <div class="table-responsive">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Nom de la classe</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for class in classes %}
+                                <tr>
+                                    <td>{{ class.name }}</td>
+                                    <td>
+                                        <form method="POST" action="/admin/infrastructure" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette classe ? Cela supprimera également les cours, emplois du temps et annonces associés.');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <input type="hidden" name="action" value="delete_class">
+                                            <input type="hidden" name="class_id" value="{{ class.id }}">
+                                            <button type="submit" class="btn-sm delete" style="padding: 8px 16px; font-weight: bold; cursor: pointer; border: none; border-radius: 6px; box-shadow: 0 2px 4px rgba(231, 76, 60, 0.2); transition: all 0.2s;">Supprimer</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="2" style="text-align: center; padding: 20px; color: #888;">Aucune classe créée</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -567,11 +561,12 @@
                                 {% for event in day.events %}
                                 <div class="admin-cal-event {{ event.color_class }}" 
                                      style="top: {{ event.top_px }}px; height: {{ event.height_px }}px;"
-                                     onclick="editSchedule({{ event.id }}, '{{ event.course_id }}', '{{ event.start_time }}', '{{ event.end_time }}', {{ event.room|tojson|safe }}, {{ event.event_type|tojson|safe }})">
+                                     onclick='editSchedule({{ event.id }}, "{{ event.course_id }}", "{{ event.class_id }}", "{{ event.start_time }}", "{{ event.end_time }}", {{ event.room|tojson|safe }}, {{ event.event_type|tojson|safe }})'>
                                     <strong>{{ event.time_str }}</strong><br>
                                     {{ event.title }}<br>
                                     {{ event.teacher }}<br>
-                                    {{ event.location }}
+                                    {{ event.location }}<br>
+                                    <b>{{ event.class_name }}</b>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -597,11 +592,12 @@
                             </div>
                             <div class="form-group">
                                 <label for="sched_class_id">Classe</label>
-                                <select id="sched_class_id" name="class_id" required>
+                                <select id="sched_class_id" name="class_id" required multiple size="4">
                                     {% for c in classes %}
                                     <option value="{{ c.id }}">{{ c.name }}</option>
                                     {% endfor %}
                                 </select>
+                                <small style="display:block;margin-top:5px;color:#888;">Maintenez Ctrl pour en sélectionner plusieurs</small>
                             </div>
                         </div>
                         
@@ -687,8 +683,12 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Classe</label>
-                                <input type="text" disabled value="Celle de l'événement" style="background:#eee; color:#666;">
+                                <label for="edit_sched_class_id">Classe</label>
+                                <select id="edit_sched_class_id" name="class_id" required>
+                                    {% for c in classes %}
+                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         
