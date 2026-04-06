@@ -178,6 +178,16 @@
 </div>
 
 <script>
+function escapeHTML(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 let currentUser = "{{ current_user.user_id }}";
 let userRole = "{{ current_user.role }}";
 let currentTab = 'private';
@@ -276,7 +286,7 @@ async function chargerMessagesPriv() {
 
             let timeStr = new Date(msg.heure).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             
-            div.innerHTML = `<strong>${msg.envoyeur === currentUser ? 'Moi' : currentChatName}</strong><br>${msg.message}<br><small>${timeStr}</small>`;
+            div.innerHTML = `<strong>${msg.envoyeur === currentUser ? 'Moi' : escapeHTML(currentChatName)}</strong><br>${escapeHTML(msg.message).replace(/\n/g, '<br>')}<br><small>${escapeHTML(timeStr)}</small>`;
             zone.appendChild(div);
         });
         
@@ -374,7 +384,7 @@ async function chargerMessagesGroupe() {
         div.style.borderRadius = "10px";
         div.style.maxWidth = "70%";
 
-        div.innerHTML = `<strong>${msg.sender_name}</strong><br>${msg.message}<br><small>${msg.created_at}</small>`;
+        div.innerHTML = `<strong>${escapeHTML(msg.sender_name)}</strong><br>${escapeHTML(msg.message).replace(/\n/g, '<br>')}<br><small>${escapeHTML(msg.created_at)}</small>`;
         zone.appendChild(div);
     });
     
@@ -521,7 +531,7 @@ async function chargerTicketMessages(id) {
             div.style.backgroundColor = isMe ? '#dcf8c6' : '#fff';
             div.style.border = '1px solid #ccc';
             
-            div.innerHTML = `<div style='font-size: 0.8em; color: #666;'>${msg.sender_name} - ${msg.created_at}</div><div>${msg.message}</div>`;
+            div.innerHTML = `<div style='font-size: 0.8em; color: #666;'>${escapeHTML(msg.sender_name)} - ${escapeHTML(msg.created_at)}</div><div>${escapeHTML(msg.message).replace(/\n/g, '<br>')}</div>`;
             chatDiv.appendChild(div);
         });
         chatDiv.scrollTop = chatDiv.scrollHeight;
