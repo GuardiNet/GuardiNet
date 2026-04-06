@@ -132,3 +132,5 @@ jobs:
         run: |
           docker stop guardinet-live || true
           docker rm guardinet-live || true
+
+# Trigger DevSecOps workflow
