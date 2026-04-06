@@ -71,7 +71,7 @@ docker build -t guardinet-app .
 
 2. Lancer le conteneur (en exposant le port 5000) :
 ```bash
-docker run -d -p 5000:5000 --name guardinet-live --env FLASK_ENV=development --env SECRET_KEY=votre_cle_secrete guardinet-app
+docker run -d -p 5000:5000 --name guardinet-live --env FLASK_ENV=development --env-file .env guardinet-app
 ```
 
 L'application sera directement accessible sur `http://localhost:5000`.
