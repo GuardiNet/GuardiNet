@@ -1109,6 +1109,11 @@ def profile():
                 if file.filename == "":
                     flash("Aucun fichier s├®lectionn├®.", "error")
                 elif file:
+                    allowed_ext = {".png", ".jpg", ".jpeg", ".gif"}
+                    ext = "." + file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ""
+                    if ext not in allowed_ext:
+                        flash("Extension non autorisée (PNG, JPG, JPEG, GIF uniquement).", "error")
+                        return redirect(url_for('main.profile'))
                     
                     header = file.read(512)
                     file.seek(0)
