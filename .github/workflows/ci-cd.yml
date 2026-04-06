@@ -12,7 +12,7 @@ on:
 
 jobs:
   flake8:
-    name: Flake8 (QualitÈ du code)
+    name: Flake8 (QualitÔøΩ du code)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -62,7 +62,7 @@ jobs:
         continue-on-error: true
 
   pip-audit:
-    name: pip-audit (SÈcuritÈ des dÈpendances)
+    name: pip-audit (SÔøΩcuritÔøΩ des dÔøΩpendances)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -82,7 +82,7 @@ jobs:
       - name: Run pip-audit and generate report
         run: |
           if [ -f requirements.txt ]; then
-            pip-audit -r requirements.txt -f json -o pip-audit-report.json || echo "Avertissement: VulnÈrabilitÈs trouvÈes."
+            pip-audit -r requirements.txt -f json -o pip-audit-report.json || echo "Avertissement: VulnÔøΩrabilitÔøΩs trouvÔøΩes."
             pip-audit -r requirements.txt > pip-audit-txt-report.txt || true
             
             echo "### Rapport pip-audit" >> $GITHUB_STEP_SUMMARY
@@ -90,7 +90,7 @@ jobs:
             cat pip-audit-txt-report.txt >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           else
-            echo "Pas de requirements.txt trouvÈ, skip pip-audit"
+            echo "Pas de requirements.txt trouvÔøΩ, skip pip-audit"
           fi
 
       - name: Upload pip-audit Report
@@ -99,8 +99,46 @@ jobs:
           name: pip-audit-report
           path: pip-audit-report.json
 
+  gitleaks:
+    name: Gitleaks (Secret Scanning)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  pytest:
+    name: Pytest (Tests Unitaires)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Run Pytest
+        run: |
+          if [ -d "tests" ]; then
+            pytest tests/ --cov=app --cov-report=xml || echo "Certains tests ont √©chou√©, ou aucun test trouv√©"
+          else
+            echo "Aucun dossier 'tests' trouv√©. Scan ignor√©."
+          fi
+        continue-on-error: true
+
   docker-zap:
-    name: Build Docker & OWASP ZAP (DAST)
+    name: Trivy & OWASP ZAP (Container & DAST)
     runs-on: ubuntu-latest
     needs: [flake8, pip-audit]
     steps:
@@ -109,6 +147,16 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t guardinet-app:latest .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'guardinet-app:latest'
+          format: 'table'
+          exit-code: '0' 
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       - name: Run application container
         run: |
