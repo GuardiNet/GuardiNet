@@ -1569,6 +1569,7 @@ def forgot_password():
     return render_template('forgot_password.html')
 
 @main_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def reset_password(token):
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
@@ -1590,7 +1591,9 @@ def reset_password(token):
         user = User.query.get(reset.user_id)
         user.set_password(password)
         user.is_password_temporary = False
-        reset.used = True
+        
+        # Invalidate all unused reset tokens for this user
+        PasswordReset.query.filter_by(user_id=user.id, used=False).update({"used": True})
         
         db.session.commit()
         
