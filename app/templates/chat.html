@@ -241,7 +241,7 @@ async function chargerContacts() {
             div.style.padding = '15px';
             div.style.borderBottom = '1px solid #ccc';
             div.style.cursor = 'pointer';
-            div.innerHTML = `<strong>${fullName}</strong> <small>(${contact.role})</small>`;
+            div.innerHTML = `<strong>${escapeHTML(fullName)}</strong>`;
             liste.appendChild(div);
         });
     } catch (e) {
@@ -422,7 +422,7 @@ function afficherCreationGroupe() {
                 const checkbox = document.createElement('label');
                 checkbox.style.display = 'block';
                 checkbox.style.padding = '5px';
-                checkbox.innerHTML = `<input type="checkbox" value="${user.user_id}" style="margin-right: 10px;"> ${user.firstname} ${user.lastname} <small>(${user.role})</small>`;
+                checkbox.innerHTML = `<input type="checkbox" value="${escapeHTML(user.user_id)}" style="margin-right: 10px;"> ${escapeHTML(user.firstname)} ${escapeHTML(user.lastname)}`;
                 liste.appendChild(checkbox);
             });
         });

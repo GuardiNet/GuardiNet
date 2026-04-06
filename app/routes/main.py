@@ -1,4 +1,4 @@
-from app import limiter
+﻿from app import limiter
 from functools import wraps
 from app.models import SupportTicket, TicketMessage
 from flask import abort
@@ -14,8 +14,8 @@ from app.models import db, User, PasswordReset, Course, ScheduleEvent, Grade, Ab
 from datetime import datetime, timedelta, date
 from flask import jsonify
 
-MOIS = ["", "janvier", "f├®vrier", "mars", "avril", "mai", "juin",
-        "juillet", "ao├╗t", "septembre", "octobre", "novembre", "d├®cembre"]
+MOIS = ["", "janvier", "fâ”œÂ®vrier", "mars", "avril", "mai", "juin",
+        "juillet", "aoâ”œâ•—t", "septembre", "octobre", "novembre", "dâ”œÂ®cembre"]
 JOURS_COURTS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
 JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
 
@@ -85,13 +85,17 @@ def force_change_password():
             flash("Veuillez remplir tous les champs.", "error")
         elif new_password != new_password_confirm:
             flash("Les mots de passe ne correspondent pas.", "error")
-        elif len(new_password) < 6:
-            flash("Le mot de passe doit contenir au moins 6 caract├¿res.", "error")
+        elif len(new_password) < 12:
+            flash("Le mot de passe doit contenir au moins 12 caractÃ¨res.", "error")
         else:
-            current_user.set_password(new_password)
+            import re
+            if not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$", new_password):
+                flash("Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractÃ¨re spÃ©cial.", "error")
+            else:
+                current_user.set_password(new_password)
             current_user.is_password_temporary = False
             db.session.commit()
-            flash("Votre mot de passe a ├®t├® mis ├á jour. Bienvenue !", "success")
+            flash("Votre mot de passe a â”œÂ®tâ”œÂ® mis â”œÃ¡ jour. Bienvenue !", "success")
             if current_user.role == 'admin':
                 return redirect(url_for('main.admin_panel'))
             return redirect(url_for('main.dashboard'))
@@ -140,7 +144,7 @@ def logout():
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():
-    # Redirections bas├®es sur le r├┤le
+    # Redirections basâ”œÂ®es sur le râ”œâ”¤le
     if current_user.role == 'admin':
         return redirect(url_for('main.admin_panel'))
 
@@ -228,7 +232,7 @@ def dashboard():
                 'time_str': time_str,
                 'title': title,
                 'teacher': teacher_name,
-                'location': event.room or "Non d├®fini",
+                'location': event.room or "Non dâ”œÂ®fini",
                 'top_px': top_px,
                 'height_px': duration_mins,
                 'color_class': color_class
@@ -277,7 +281,7 @@ def notes():
                 courses_data[c_name] = {'name': c_name, 'details': [], 'sum_notes': 0, 'sum_coeffs': 0}
 
             courses_data[c_name]['details'].append({
-                'label': g.exam_name or 'Contr├┤le continu',
+                'label': g.exam_name or 'Contrâ”œâ”¤le continu',
                 'note': g.value,
                 'coeff': g.coefficient or 1.0
             })
@@ -367,7 +371,7 @@ def annonces():
             )
             db.session.add(new_ann)
             db.session.commit()
-            flash('Annonce publi├®e avec succ├¿s !', 'success')
+            flash('Annonce publiâ”œÂ®e avec succâ”œÂ¿s !', 'success')
             return redirect(url_for('main.annonces'))
 
     if current_user.role == 'admin':
@@ -407,12 +411,12 @@ def chat():
 @main_bp.route('/api/chat/contacts', methods=['GET'])
 @login_required
 def get_contacts():
-    users = User.query.filter(User.id != current_user.id).all()
+    # Only pull active users and don't expose sensitive fields like role or email
+    users = User.query.filter(User.id != current_user.id, User.is_active == True).all()
     contacts = [{
         'user_id': u.user_id,
         'firstname': u.firstname,
         'lastname': u.lastname,
-        'role': u.role,
         'profile_pic': u.profile_pic
     } for u in users]
     return jsonify(contacts)
@@ -558,7 +562,7 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or current_user.role != 'admin':
-            abort(403)  # STOP! Ce n'est pas pour toi, retourne ├á tes devoirs bogoss
+            abort(403)  # STOP! Ce n'est pas pour toi, retourne â”œÃ¡ tes devoirs bogoss
         return f(*args, **kwargs)
     return decorated_function
 
@@ -575,7 +579,7 @@ def admin_panel():
         role = request.form.get('role', 'student')
 
         if User.query.filter_by(email=email).first():
-            flash("Cet e-mail est d├®j├á utilis├®.", "error")
+            flash("Cet e-mail est dâ”œÂ®jâ”œÃ¡ utilisâ”œÂ®.", "error")
         else:
             new_user = User(
                 firstname=firstname,
@@ -609,13 +613,13 @@ def admin_panel():
                                                password=temp_password,
                                                login_url=url_for("main.login", _external=True))
                     mail.send(msg)
-                    flash(f"Compte {role} cr├®├® pour {firstname} {lastname} et email envoy├®.", "success")
+                    flash(f"Compte {role} crâ”œÂ®â”œÂ® pour {firstname} {lastname} et email envoyâ”œÂ®.", "success")
                 except Exception as e:
                     print("Erreur envoi email:", e)
                     flash(
-                        f"Compte {role} cr├®├® avec mot de passe {temp_password}. ├ëchec de l'envoi de l'email : v├®rifiez la config SMTP.", "warning")
+                        f"Compte {role} crâ”œÂ®â”œÂ® avec mot de passe {temp_password}. â”œÃ«chec de l'envoi de l'email : vâ”œÂ®rifiez la config SMTP.", "warning")
             else:
-                flash(f"Compte {role} cr├®├® avec succ├¿s (Aucun e-mail envoy├®).", "success")
+                flash(f"Compte {role} crâ”œÂ®â”œÂ® avec succâ”œÂ¿s (Aucun e-mail envoyâ”œÂ®).", "success")
 
     classes = ClassGroup.query.all()
     students = User.query.filter_by(role='student').all()
@@ -707,7 +711,7 @@ def admin_panel():
                 'time_str': time_str,
                 'title': title,
                 'teacher': teacher_name,
-                'location': event.room or "Non d├®fini",
+                'location': event.room or "Non dâ”œÂ®fini",
                 'top_px': top_px,
                 'height_px': duration_mins,
                 'color_class': color_class,
@@ -761,7 +765,7 @@ def admin_notes():
         
         student_stats.append({
             'student': student,
-            'class_name': student.class_group.name if student.class_group else 'Non assign├®',
+            'class_name': student.class_group.name if student.class_group else 'Non assignâ”œÂ®',
             'average': average,
             'grade_count': len(grades)
         })
@@ -779,7 +783,7 @@ def generate_bulletin(student_id):
     student = User.query.get_or_404(student_id)
     grades = Grade.query.filter_by(student_id=student.id).all()
     
-    appreciation = request.form.get('appreciation', 'Aucune appr├®ciation.')
+    appreciation = request.form.get('appreciation', 'Aucune apprâ”œÂ®ciation.')
     status = request.form.get('status', 'Passage')
     action = request.form.get('action') # 'print' or 'email'
     
@@ -787,10 +791,10 @@ def generate_bulletin(student_id):
     total_coef = sum(g.coefficient for g in grades)
     average = round(total_points / total_coef, 2) if total_coef > 0 else None
     
-    # Pr├®pare les donn├®es pour le rendu
+    # Prâ”œÂ®pare les donnâ”œÂ®es pour le rendu
     grades_by_course = {}
     for g in grades:
-        c_name = g.course.name if g.course else 'Mati├¿re inconnue'
+        c_name = g.course.name if g.course else 'Matiâ”œÂ¿re inconnue'
         if c_name not in grades_by_course:
             grades_by_course[c_name] = []
         grades_by_course[c_name].append({
@@ -799,7 +803,7 @@ def generate_bulletin(student_id):
             'coef': g.coefficient
         })
         
-    # Calcul moyenne par mati├¿re
+    # Calcul moyenne par matiâ”œÂ¿re
     courses_stats = []
     for course, gs in grades_by_course.items():
         cp = sum(g['value'] * g['coef'] for g in gs)
@@ -818,14 +822,14 @@ def generate_bulletin(student_id):
                 recipients=[student.email])
             msg.html = render_template('email_bulletin.html', student=student, courses_stats=courses_stats, average=average, appreciation=appreciation, status=status)
             mail.send(msg)
-            flash(f"Bulletin envoy├® avec succ├¿s ├á {student.firstname} {student.lastname}.", "success")
+            flash(f"Bulletin envoyâ”œÂ® avec succâ”œÂ¿s â”œÃ¡ {student.firstname} {student.lastname}.", "success")
         except Exception as e:
             print(f"Erreur d'envoi du bulletin: {e}")
             flash(f"Erreur lors de l'envoi de l'email: {str(e)}", "error")
         return redirect(url_for('main.admin_notes'))
         
     elif action == 'print':
-        # Retourne simplement une page HTML pr├¬te ├á ├¬tre imprim├®e en PDF par le navigateur
+        # Retourne simplement une page HTML prâ”œÂ¬te â”œÃ¡ â”œÂ¬tre imprimâ”œÂ®e en PDF par le navigateur
         return render_template('bulletin_print.html', student=student, courses_stats=courses_stats, average=average, appreciation=appreciation, status=status)
         
     return redirect(url_for('main.admin_notes'))
@@ -843,7 +847,7 @@ def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
-    flash(f"L'utilisateur {user.firstname} {user.lastname} a ├®t├® supprim├® avec succ├¿s.", "success")
+    flash(f"L'utilisateur {user.firstname} {user.lastname} a â”œÂ®tâ”œÂ® supprimâ”œÂ® avec succâ”œÂ¿s.", "success")
     return redirect(url_for('main.admin_panel', tab='users'))
 
 
@@ -861,7 +865,7 @@ def admin_infrastructure():
                 new_class = ClassGroup(name=name)
                 db.session.add(new_class)
                 db.session.commit()
-                flash(f"Classe {name} cr├®├®e avec succ├¿s.", "success")
+                flash(f"Classe {name} crâ”œÂ®â”œÂ®e avec succâ”œÂ¿s.", "success")
 
         elif action == 'delete_class':
             class_id = request.form.get('class_id')
@@ -880,7 +884,7 @@ def admin_infrastructure():
                     
                     db.session.delete(class_grp)
                     db.session.commit()
-                    flash(f"Classe {class_grp.name} supprim├®e avec succ├¿s.", "success")
+                    flash(f"Classe {class_grp.name} supprimâ”œÂ®e avec succâ”œÂ¿s.", "success")
 
         elif action == 'assign_user_class':
             user_id = request.form.get('user_id')
@@ -890,7 +894,7 @@ def admin_infrastructure():
                 if user:
                     user.class_id = class_id
                     db.session.commit()
-                    flash("Utilisateur assign├® ├á la classe.", "success")
+                    flash("Utilisateur assignâ”œÂ® â”œÃ¡ la classe.", "success")
 
         elif action == 'create_course':
             name = request.form.get('name')
@@ -899,7 +903,7 @@ def admin_infrastructure():
                 new_course = Course(name=name, prof_id=prof_id if prof_id else None)
                 db.session.add(new_course)
                 db.session.commit()
-                flash(f"Cours {name} cr├®├® avec succ├¿s.", "success")
+                flash(f"Cours {name} crâ”œÂ®â”œÂ® avec succâ”œÂ¿s.", "success")
 
         elif action == 'edit_course':
             course_id = request.form.get('course_id')
@@ -910,7 +914,7 @@ def admin_infrastructure():
                 course.name = name
                 course.prof_id = prof_id if prof_id else None
                 db.session.commit()
-                flash(f"Cours {name} modifi├® avec succ├¿s.", "success")
+                flash(f"Cours {name} modifiâ”œÂ® avec succâ”œÂ¿s.", "success")
 
         elif action == 'delete_course':
             course_id = request.form.get('course_id')
@@ -922,7 +926,7 @@ def admin_infrastructure():
                     db.session.delete(grade)
                 db.session.delete(course)
                 db.session.commit()
-                flash("Cours supprim├® avec succ├¿s.", "success")
+                flash("Cours supprimâ”œÂ® avec succâ”œÂ¿s.", "success")
 
         elif action == 'edit_schedule':
             event_id = request.form.get('event_id')
@@ -943,7 +947,7 @@ def admin_infrastructure():
                     event.room = room
                     event.event_type = event_type
                     db.session.commit()
-                    flash("├ëv├®nement modifi├® avec succ├¿s.", "success")
+                    flash("â”œÃ«vâ”œÂ®nement modifiâ”œÂ® avec succâ”œÂ¿s.", "success")
                 except ValueError:
                     flash("Format de date invalide.", "error")
             return redirect(url_for('main.admin_panel', tab='edt'))
@@ -954,7 +958,7 @@ def admin_infrastructure():
             if event:
                 db.session.delete(event)
                 db.session.commit()
-                flash("├ëv├®nement supprim├® avec succ├¿s.", "success")
+                flash("â”œÃ«vâ”œÂ®nement supprimâ”œÂ® avec succâ”œÂ¿s.", "success")
             return redirect(url_for('main.admin_panel', tab='edt'))
 
         elif action == 'create_schedule':
@@ -985,7 +989,7 @@ def admin_infrastructure():
                         )
                         db.session.add(new_event)
                     db.session.commit()
-                    flash(f"{len(class_ids)} ├®v├®nement(s) ajout├®(s) ├á l'emploi du temps.", "success")
+                    flash(f"{len(class_ids)} â”œÂ®vâ”œÂ®nement(s) ajoutâ”œÂ®(s) â”œÃ¡ l'emploi du temps.", "success")
                 except ValueError:
                     flash("Erreur dans le format des dates.", "error")
 
@@ -1022,7 +1026,7 @@ def admin_change_class():
         if user and user.role == 'student':
             user.class_id = class_id
             db.session.commit()
-            flash(f"La classe de {user.firstname} {user.lastname} a ├®t├® mise ├á jour.", "success")
+            flash(f"La classe de {user.firstname} {user.lastname} a â”œÂ®tâ”œÂ® mise â”œÃ¡ jour.", "success")
 
     return redirect(url_for('main.admin_panel', tab='users'))
 
@@ -1031,7 +1035,7 @@ def admin_change_class():
 @login_required
 def admin_update_absence(absence_id):
     if current_user.role != 'admin':
-        flash("Acc├¿s non autoris├®.", "error")
+        flash("Accâ”œÂ¿s non autorisâ”œÂ®.", "error")
         return redirect(url_for('main.dashboard'))
 
     absence = Absence.query.get_or_404(absence_id)
@@ -1044,23 +1048,23 @@ def admin_update_absence(absence_id):
     if action == 'delete':
         db.session.delete(absence)
         db.session.commit()
-        flash("Absence supprim├®e avec succ├¿s.", "success")
-        status = "supprim├®e"
+        flash("Absence supprimâ”œÂ®e avec succâ”œÂ¿s.", "success")
+        status = "supprimâ”œÂ®e"
     else:
         if action == 'justify':
             absence.is_justified = True
-            status = "justifi├®e"
-            flash("Absence marqu├®e comme justifi├®e.", "success")
+            status = "justifiâ”œÂ®e"
+            flash("Absence marquâ”œÂ®e comme justifiâ”œÂ®e.", "success")
         elif action == 'unjustify':
             absence.is_justified = False
-            status = "injustifi├®e"
-            flash("Absence marqu├®e comme injustifi├®e.", "success")
+            status = "injustifiâ”œÂ®e"
+            flash("Absence marquâ”œÂ®e comme injustifiâ”œÂ®e.", "success")
 
         db.session.commit()
 
-    # Envoyer un e-mail ├á l'├®tudiant
+    # Envoyer un e-mail â”œÃ¡ l'â”œÂ®tudiant
     try:
-        msg = MailMessage(subject="Mise ├á jour de votre absence",
+        msg = MailMessage(subject="Mise â”œÃ¡ jour de votre absence",
                           sender=current_app.config.get("MAIL_DEFAULT_SENDER"),
                           recipients=[student.email])
         msg.html = render_template("email_absence_update.html",
@@ -1071,7 +1075,7 @@ def admin_update_absence(absence_id):
         mail.send(msg)
     except Exception as e:
         print("Erreur envoi email absence:", e)
-        flash("Mise ├á jour r├®ussie mais ├®chec de l'envoi de l'e-mail.", "warning")
+        flash("Mise â”œÃ¡ jour râ”œÂ®ussie mais â”œÂ®chec de l'envoi de l'e-mail.", "warning")
 
     return redirect(url_for('main.admin_panel', tab='absences'))
 
@@ -1082,7 +1086,7 @@ def profile():
     if request.method == "POST":
         action = request.form.get("action")
 
-        # 1. Mettre ├á jour le mot de passe
+        # 1. Mettre â”œÃ¡ jour le mot de passe
         if action == "update_password":
             current_password = request.form.get("current_password")
             new_password = request.form.get("new_password")
@@ -1092,33 +1096,37 @@ def profile():
                 flash("Le mot de passe actuel est incorrect.", "error")
             elif new_password != confirm_password:
                 flash("Les nouveaux mots de passe ne correspondent pas.", "error")
-            elif len(new_password) < 6:
-                flash("Le mot de passe doit contenir au moins 6 caract├¿res.", "error")
+            elif len(new_password) < 12:
+                flash("Le mot de passe doit contenir au moins 12 caractÃ¨res.", "error")
             else:
-                current_user.set_password(new_password)
+                import re
+                if not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$", new_password):
+                    flash("Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractÃ¨re spÃ©cial.", "error")
+                else:
+                    current_user.set_password(new_password)
                 current_user.is_password_temporary = False
                 db.session.commit()
-                flash("Votre mot de passe a ├®t├® mis ├á jour avec succ├¿s.", "success")
+                flash("Votre mot de passe a â”œÂ®tâ”œÂ® mis â”œÃ¡ jour avec succâ”œÂ¿s.", "success")
 
-        # 2. Mettre ├á jour la photo de profil
+        # 2. Mettre â”œÃ¡ jour la photo de profil
         elif action == "update_picture":
             if "profile_pic" not in request.files:
-                flash("Aucun fichier s├®lectionn├®.", "error")
+                flash("Aucun fichier sâ”œÂ®lectionnâ”œÂ®.", "error")
             else:
                 file = request.files["profile_pic"]
                 if file.filename == "":
-                    flash("Aucun fichier s├®lectionn├®.", "error")
+                    flash("Aucun fichier sâ”œÂ®lectionnâ”œÂ®.", "error")
                 elif file:
                     allowed_ext = {".png", ".jpg", ".jpeg", ".gif"}
                     ext = "." + file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ""
                     if ext not in allowed_ext:
-                        flash("Extension non autorisée (PNG, JPG, JPEG, GIF uniquement).", "error")
+                        flash("Extension non autorisÃ©e (PNG, JPG, JPEG, GIF uniquement).", "error")
                         return redirect(url_for('main.profile'))
                     
                     header = file.read(512)
                     file.seek(0)
                     if not header.startswith(b'\xff\xd8') and not header.startswith(b'\x89PNG\r\n\x1a\n') and not (header.startswith(b'GIF87a') or header.startswith(b'GIF89a')):
-                        flash("Fichier invalide (type MIME non autorisé).", "error")
+                        flash("Fichier invalide (type MIME non autorisÃ©).", "error")
                         return redirect(url_for('main.profile'))
                     filename = secure_filename(f"{current_user.id}_{file.filename}")
 
@@ -1132,7 +1140,7 @@ def profile():
 
                     current_user.profile_pic = filename
                     db.session.commit()
-                    flash("Votre photo de profil a ├®t├® mise ├á jour.", "success")
+                    flash("Votre photo de profil a â”œÂ®tâ”œÂ® mise â”œÃ¡ jour.", "success")
 
         return redirect(url_for("main.profile"))
 
@@ -1186,7 +1194,7 @@ def create_ticket():
         'id': ticket.id,
         'title': ticket.title,
         'status': ticket.status,
-        'message': 'Ticket cr├®├® avec succ├¿s.'
+        'message': 'Ticket crâ”œÂ®â”œÂ® avec succâ”œÂ¿s.'
     }), 201
 
 
@@ -1196,7 +1204,7 @@ def get_ticket_messages(ticket_id):
     ticket = SupportTicket.query.get_or_404(ticket_id)
 
     if current_user.role != 'admin' and ticket.user_id != current_user.user_id:
-        return jsonify({'error': 'Acc├¿s non autoris├®.'}), 403
+        return jsonify({'error': 'Accâ”œÂ¿s non autorisâ”œÂ®.'}), 403
 
     messages = TicketMessage.query.filter_by(ticket_id=ticket.id).order_by(TicketMessage.created_at).all()
 
@@ -1228,10 +1236,10 @@ def send_ticket_message(ticket_id):
     ticket = SupportTicket.query.get_or_404(ticket_id)
 
     if current_user.role != 'admin' and ticket.user_id != current_user.user_id:
-        return jsonify({'error': 'Acc├¿s non autoris├®.'}), 403
+        return jsonify({'error': 'Accâ”œÂ¿s non autorisâ”œÂ®.'}), 403
 
     if ticket.status == 'closed':
-        return jsonify({'error': 'Ce ticket est ferm├®.'}), 400
+        return jsonify({'error': 'Ce ticket est fermâ”œÂ®.'}), 400
 
     data = request.json
     message_text = data.get('message')
@@ -1267,12 +1275,12 @@ def close_ticket(ticket_id):
     ticket = SupportTicket.query.get_or_404(ticket_id)
 
     if current_user.role != 'admin' and ticket.user_id != current_user.user_id:
-        return jsonify({'error': 'Acc├¿s non autoris├®.'}), 403
+        return jsonify({'error': 'Accâ”œÂ¿s non autorisâ”œÂ®.'}), 403
 
     ticket.status = 'closed'
     db.session.commit()
 
-    return jsonify({'status': 'closed', 'message': 'Ticket ferm├® avec succ├¿s.'})
+    return jsonify({'status': 'closed', 'message': 'Ticket fermâ”œÂ® avec succâ”œÂ¿s.'})
 
 
 @main_bp.route('/api/teacher/students/<int:class_id>', methods=['GET'])
@@ -1426,7 +1434,7 @@ def api_submit_grade():
     _c = Course.query.filter_by(id=course_id, prof_id=current_user.id).first()
     if not _c: return getattr(globals().get('jsonify', __import__('flask').jsonify), '__call__')({'error': 'Access denied to this course'}), 403
     value = data.get('value')
-    exam_name = data.get('exam_name', 'Contr├┤le continu')
+    exam_name = data.get('exam_name', 'Contrâ”œâ”¤le continu')
     coefficient = data.get('coefficient', 1.0)
 
     new_grade = Grade(student_id=student_id, course_id=course_id, value=float(
@@ -1555,7 +1563,7 @@ def forgot_password():
                 from flask_mail import Message as MailMessage
                 from app import mail
                 
-                msg = MailMessage('R├®initialisation de votre mot de passe',
+                msg = MailMessage('Râ”œÂ®initialisation de votre mot de passe',
                               sender=current_app.config.get('MAIL_DEFAULT_SENDER', 'noreply@guardinet.fr'),
                               recipients=[user.email])
                 msg.html = render_template('email_forgot_password.html', user=user, reset_url=reset_url)
@@ -1563,7 +1571,7 @@ def forgot_password():
             except Exception as e:
                 print(f"Erreur envoi email: {e}")
                 
-        flash('Si un compte existe avec cette adresse email, un lien de r├®initialisation vous a ├®t├® envoy├®.', 'success')
+        flash('Si un compte existe avec cette adresse email, un lien de râ”œÂ®initialisation vous a â”œÂ®tâ”œÂ® envoyâ”œÂ®.', 'success')
         return redirect(url_for('main.login'))
         
     return render_template('forgot_password.html')
@@ -1577,7 +1585,7 @@ def reset_password(token):
     reset = PasswordReset.query.filter_by(token=token, used=False).first()
     
     if not reset or not reset.is_valid():
-        flash('Le lien de r├®initialisation est invalide ou a expir├®.', 'error')
+        flash('Le lien de râ”œÂ®initialisation est invalide ou a expirâ”œÂ®.', 'error')
         return redirect(url_for('main.login'))
         
     if request.method == 'POST':
@@ -1586,6 +1594,11 @@ def reset_password(token):
         
         if password != confirm_password:
             flash('Les mots de passe ne correspondent pas.', 'error')
+            return render_template('reset_password.html', token=token)
+            
+        import re
+        if len(password) < 12 or not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,}$", password):
+            flash('Le mot de passe doit contenir au moins 12 caractÃ¨res, 1 majuscule, 1 minuscule, 1 chiffre et 1 caractÃ¨re spÃ©cial.', 'error')
             return render_template('reset_password.html', token=token)
             
         user = User.query.get(reset.user_id)
@@ -1597,7 +1610,7 @@ def reset_password(token):
         
         db.session.commit()
         
-        flash('Votre mot de passe a ├®t├® mis ├á jour avec succ├¿s.', 'success')
+        flash('Votre mot de passe a â”œÂ®tâ”œÂ® mis â”œÃ¡ jour avec succâ”œÂ¿s.', 'success')
         return redirect(url_for('main.login'))
         
     return render_template('reset_password.html', token=token)
@@ -1622,9 +1635,9 @@ def admin_force_reset_password(user_id):
         login_url = url_for('main.login', _external=True)
         msg.html = render_template('email_admin_reset_password.html', user=user, new_password=new_password, login_url=login_url)
         mail.send(msg)
-        flash(f'Mot de passe r├®initialis├® pour {user.firstname} {user.lastname}. Un email lui a ├®t├® envoy├®.', 'success')
+        flash(f'Mot de passe râ”œÂ®initialisâ”œÂ® pour {user.firstname} {user.lastname}. Un email lui a â”œÂ®tâ”œÂ® envoyâ”œÂ®.', 'success')
     except Exception as e:
         print(f"Erreur envoi email: {e}")
-        flash(f'Le mot de passe a ├®t├® r├®initialis├® ├á : {new_password}, mais l\'email n\'a pu ├¬tre envoy├®.', 'error')
+        flash(f'Le mot de passe a â”œÂ®tâ”œÂ® râ”œÂ®initialisâ”œÂ® â”œÃ¡ : {new_password}, mais l\'email n\'a pu â”œÂ¬tre envoyâ”œÂ®.', 'error')
         
     return redirect(url_for('main.admin_panel', tab='users'))
