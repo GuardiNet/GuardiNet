@@ -1,4 +1,4 @@
-version: '3.8'
+﻿version: '3.8'
 
 services:
   web:
@@ -10,12 +10,14 @@ services:
     env_file:
       - .env
     environment:
+      # These use env substitution, passing values from the .env file if available, 
+      # or using the placeholder default value after the :-
       - FLASK_ENV=production
-      - DB_USER=guardinet_user
-      - DB_PASSWORD=guardinet_password
+      - DB_USER=${DB_USER:-guardinet_user}
+      - DB_PASSWORD=${DB_PASSWORD:-ChangeMePlease123!}
       - DB_HOST=db
-      - DB_NAME=guardinet
-      - SECRET_KEY=super_secret_devsecops_key_1234
+      - DB_NAME=${DB_NAME:-guardinet}
+      - SECRET_KEY=${SECRET_KEY:-ChangeThisSecretKeyBeforeDeploy_1234!}
     depends_on:
       db:
         condition: service_healthy
@@ -27,10 +29,11 @@ services:
     container_name: guardinet_db
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=root_password_secret
-      - MYSQL_DATABASE=guardinet
-      - MYSQL_USER=guardinet_user
-      - MYSQL_PASSWORD=guardinet_password
+      # Make sure MYSQL_PASSWORD is identical to DB_PASSWORD for successful auth
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-ChangeMeRoot123!}
+      - MYSQL_DATABASE=${DB_NAME:-guardinet}
+      - MYSQL_USER=${DB_USER:-guardinet_user}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-ChangeMePlease123!}
     volumes:
       - db_data:/var/lib/mysql
       # Initialise la base avec le script SQL dès la création
@@ -40,7 +43,7 @@ services:
     networks:
       - guardinet_network
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -uroot -p$$MYSQL_ROOT_PASSWORD -h localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -pdocker-compose.ymlMYSQL_ROOT_PASSWORD -h localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
